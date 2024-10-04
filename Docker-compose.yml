@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo
+    container_name: mongo_container
+    command: mongod --auth
+    ports:
+      - 27018:27017
+    volumes:
+      - './mongodb:/data/db'
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 2904
+    networks:
+      - my_network
+  redis:
+    image: redis:latest
+    container_name: redis_laoshop
+    ports:
+      - 6379:6379
+    environment:
+      REDIS_PASSWORD: 2904
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 16
+    volumes:
+      - ./redis-data:/data
+    command: redis-server --appendonly yes --requirepass 2904 # Đặt mật khẩu cho Redis và bật tính năng ghi dữ liệu
+    networks:
+      - my_network
+networks:
+  my_network:
+    driver: bridge
