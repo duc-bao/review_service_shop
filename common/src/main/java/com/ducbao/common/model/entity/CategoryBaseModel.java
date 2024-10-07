@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,6 +18,7 @@ public class CategoryBaseModel extends BaseModel {
     @Id
     private String id;
 
+    @Indexed(unique=true)
     private String name;
 
     private CategoryEnums type;

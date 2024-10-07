@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 @Data
 @SuperBuilder
@@ -12,6 +13,7 @@ public class CommentBaseModel extends BaseModel{
     @Id
     private String id;
 
+    @Indexed(unique=true)
     private String content;
 
     private String idReview;
