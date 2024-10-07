@@ -12,8 +12,23 @@ public enum StatusCodeEnum {
     EXCEPTION0504("EXCEPTION0504"), // Missing servlet request parameter
     EXCEPTION0505("EXCEPTION0505"), // Invalid x-api-key
     EXCEPTION0506("EXCEPTION0506"), // Max size file exception
-    EXCEPTION0507("EXCEPTION0507"); // Invalid value input
+    EXCEPTION0507("EXCEPTION0507"), // Invalid value input
 
+    //LOGIN
+    LOGIN("LOGIN"), // Login
+    LOGIN1000("LOGIN1000"),
+    LOGIN1001("LOGIN1001"),// Login not success
+    LOGIN1002("LOGIN1002"), // Email already exists
+    LOGIN1003("LOGIN1003"), // Username already exists
+    LOGIN1004("LOGIN1004"), // Phone already exists
+
+
+
+    // User
+    USER("USER"), // USER
+    USER1000("USER1000"), // Save user successfully
+    USER1001("USER1001"), // Save user not successfully
+    ;
     public final String value;
 
     StatusCodeEnum(String value) {

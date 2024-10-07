@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,6 +19,7 @@ public class ServiceBaseModel extends BaseModel {
 
     private String idShop;
 
+    @Indexed(unique = true)
     private String name;
 
     private String type;

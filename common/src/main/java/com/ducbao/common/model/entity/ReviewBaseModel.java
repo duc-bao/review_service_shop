@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class ReviewBaseModel extends BaseModel {
     @Id
     private String id;
 
+    @Indexed(unique = true)
     private String reviewTitle;
 
     private String reviewContent;
