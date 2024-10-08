@@ -37,6 +37,10 @@ public class UserBaseModel extends BaseModel {
 
     private String district;
 
+    private String firstName;
+
+    private String lastName;
+
     private String activeCode;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

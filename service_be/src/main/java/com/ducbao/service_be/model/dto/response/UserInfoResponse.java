@@ -8,5 +8,9 @@ public class UserInfoResponse {
     private String username;
     private String email;
     private String avatar;
+
+    private String firstName;
+
+    private String lastName;
     private StatusUserEnums statusUserEnums;
 }

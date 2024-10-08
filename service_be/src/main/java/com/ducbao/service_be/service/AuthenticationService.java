@@ -4,6 +4,8 @@ import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.model.enums.StatusUserEnums;
+import com.ducbao.service_be.model.constant.AppConstants;
+import com.ducbao.service_be.model.dto.request.EmailRequest;
 import com.ducbao.service_be.model.dto.request.LoginRequest;
 import com.ducbao.service_be.model.dto.request.ResgisterRequest;
 import com.ducbao.service_be.model.dto.response.LoginResponse;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,6 +33,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final CommonMapper commonMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public ResponseEntity<ResponseDto<LoginResponse>> login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -42,12 +46,12 @@ public class AuthenticationService {
 
             UserModel userModel = userRepository.findById(userId).orElse(null);
             UserInfoResponse userInfoResponse = commonMapper.map(userModel, UserInfoResponse.class);
-            LoginResponse loginResponse =  LoginResponse.builder()
+            LoginResponse loginResponse = LoginResponse.builder()
                     .accessToken(token)
                     .userInfoResponse(userInfoResponse)
                     .build();
 
-            if ("ACTIVE".equals(userModel.getStatusUserEnums().toString())){
+            if ("ACTIVE".equals(userModel.getStatusUserEnums().toString())) {
                 return ResponseBuilder.okResponse(
                         "Đăng nhập thành công",
                         loginResponse,
@@ -94,21 +98,53 @@ public class AuthenticationService {
         String endecodePassword = passwordEncoder.encode(userModel.getPassword());
         userModel.setPassword(endecodePassword);
         userModel.setRole(List.of("USER"));
+        EmailRequest emailRequest = EmailRequest.builder()
+                .channel("email")
+                .recipient(userModel.getEmail())
+                .templateCode("REGISTER")
+                .param(Map.of("name", userModel.getUsername(),
+                        "verificationUrl", AppConstants.LINK_ACTIVE_ACCOUNT + userModel.getActiveCode()))
+                .subject(AppConstants.SUBJECT_REGISTER)
+                .build();
+        // Sử dụng bất đồng bộ
 
+//        emailService.sendEmail(emailRequest)
         try {
             userRepository.save(userModel);
-
+            emailService.sendEmail(emailRequest);
             return ResponseBuilder.badRequestResponse(
                     "Đăng kí tài khoản thành công vui lòng kiểm tra email để kích hoạt tài khoản",
                     StatusCodeEnum.USER1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lưu người dùng không thành công",
                     StatusCodeEnum.USER1001
             );
         }
 
+
+    }
+
+    public ResponseEntity<ResponseDto<UserInfoResponse>> activeAcount(String code) {
+        UserModel userModel = userRepository.findByActiveCode(code);
+        if (userModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy tài khoản",
+                    StatusCodeEnum.USER1002
+            );
+        }
+
+        userModel.setStatusUserEnums(StatusUserEnums.ACTIVE);
+        userRepository.save(userModel);
+        return ResponseBuilder.badRequestResponse(
+                "Kích hoạt tài khoản thành công",
+                commonMapper.map(userModel, UserInfoResponse.class),
+                StatusCodeEnum.USER1003
+        );
+    }
+
+    public ResponseEntity<ResponseDto<UserInfoResponse>> changeInfoUser(){
 
     }
 
