@@ -28,6 +28,8 @@ public enum StatusCodeEnum {
     USER("USER"), // USER
     USER1000("USER1000"), // Save user successfully
     USER1001("USER1001"), // Save user not successfully
+    USER1002("USER1002"), // Not found account
+    USER1003("USER1003"), // Active account successfully
     ;
     public final String value;
 
