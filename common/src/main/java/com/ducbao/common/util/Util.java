@@ -1,5 +1,6 @@
 package com.ducbao.common.util;
 
+import com.ducbao.common.model.constant.FileConstant;
 import lombok.experimental.UtilityClass;
 
 import java.security.SecureRandom;
@@ -21,9 +22,9 @@ public class Util {
 //
 //    public String generateUUID() { return UUID.randomUUID().toString(); }
 //
-//    public String generateFileDirectory(String... arg) {
-//        return String.join(FileConstant.DIRECTORY_DIVIDE, arg);
-//    }
+    public String generateFileDirectory(String... arg) {
+        return String.join(FileConstant.DIRECTORY_DIVIDE, arg);
+    }
 //
 //    public String generateAuthorizationCode() {
 //        int length = 60;
