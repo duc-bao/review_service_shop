@@ -1,6 +1,5 @@
 package com.ducbao.service_be.model.dto.response;
 
-import com.ducbao.common.model.entity.OpenTimeBaseModel;
 import com.ducbao.common.model.enums.StatusShopEnums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShopResponse {
+public class ShopGetResponse {
     private String id;
 
     private String name;
@@ -30,7 +29,7 @@ public class ShopResponse {
 
     private List<String> mediaUrls;
 
-    private List<String> listIdOpenTime;
+    private List<OpenTimeResponse> listOpenTimes;
 
     private StatusShopEnums statusShopEnums;
 

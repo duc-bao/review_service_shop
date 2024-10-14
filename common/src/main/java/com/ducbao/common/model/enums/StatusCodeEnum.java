@@ -37,7 +37,8 @@ public enum StatusCodeEnum {
     SHOP1000("SHOP1000"), // Save shop successfully
     SHOP1001("SHOP1001"), // Save shop not successfully
     SHOP1002("SHOP1002"), // Upload image successfully
-
+    SHOP1003("1003"), // Not found shop
+    SHOP1004("1004"), // Get by id success
     ;
     public final String value;
 

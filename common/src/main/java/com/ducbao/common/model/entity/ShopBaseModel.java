@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -32,5 +33,18 @@ public class ShopBaseModel extends BaseModel {
 
     private String idUser;
 
+    private List<String> listIdOpenTime;
+
     private StatusShopEnums statusShopEnums;
+
+    private String city;
+
+    private String ward;
+
+    private String district;
+
+    private BigDecimal longitude;
+
+    private BigDecimal latitude;
+
 }
