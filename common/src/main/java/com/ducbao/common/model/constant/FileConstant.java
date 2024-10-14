@@ -8,4 +8,5 @@ public class FileConstant {
     public final static String DEFAULT_IMAGE_BASE64_TYPE = ".jpg";
     public static final String FILE_EXCEL_PREFIX = "ErrorExcel";
     public static final String IMAGE_USER = "IMAGE_USER";
+    public static final String IMAGE_SHOP = "IMAGE_SHOP";
 }

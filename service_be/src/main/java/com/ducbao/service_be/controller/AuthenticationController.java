@@ -38,7 +38,7 @@ public class AuthenticationController {
                                     "success":true,
                                     "message":"Đăng nhập thành công"
                                     "data":{
-                                        accessToken:"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMDA3MDEyMzU4NCIsImlhdCI6MTcxNTMxNDIwNSwiZXhwIjoxNzE2NTIzODA1fQ.HemoUsztf_OGgM-KEeDIU1388MkX4n7S1hzpeY49eXCAwFL_8IF0KenQpk5mqsKsb0RZVDXb_cru3fuyuET0Xg"
+                                        accessToken:"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbIlVTRVIiXSwiZW5hYmxlZCI6dHJ1ZSwic3ViIjoiNjcwNGY5NTdhNzdmMDQ0MmIxZTMyYTIzIiwiZXhwIjoxNzMwMDQ1NjY5fQ.tSt_OzN5QV29Xhqa_UFsDpBxjLIU6b7ktEE_qrDMz9Ef6tD8GHIUO0GNtnPTYRP4JmSWVYgSOnwMcFQFTgWe4w"
                                         userInfoResponse:{
                                             username: "anhbao",
                                             email:"truongducbao@gmail.com",

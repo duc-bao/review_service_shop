@@ -13,7 +13,6 @@ public class CommentBaseModel extends BaseModel{
     @Id
     private String id;
 
-    @Indexed(unique=true)
     private String content;
 
     private String idReview;

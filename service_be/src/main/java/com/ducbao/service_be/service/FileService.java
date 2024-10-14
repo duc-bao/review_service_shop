@@ -32,9 +32,11 @@ public class FileService {
         try {
             String filePathKey = getFilePathKey(file.getOriginalFilename(), userId, typeUpload);
             byte[] bytes = resizeImage(file.getBytes());
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(byteArrayInputStream, ObjectUtils.asMap("public_id", filePathKey));
-            String link = (String) uploadResult.get("secure_url"); // Lấy link bảo mật
+            log.info("Image format: {}", getImageFormat(bytes));
+//            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(bytes, ObjectUtils.asMap("public_id", filePathKey));
+            log.info("Upload result: {}", uploadResult);
+            String link = (String) uploadResult.get("url"); // Lấy link bảo mật
 
             return link;
         } catch (Exception e) {
@@ -133,5 +135,24 @@ public class FileService {
 
         return null;
     }
+    public void deleteImage(String url) {
+        try {
+            String publicId = extractPublicId(url);
+            Map<String, Object> deleteResult = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            log.info("Delete result: {}", deleteResult);
+        } catch (Exception e) {
+            log.error("Error during delete: {}", e.getMessage());
+        }
+    }
+    public String extractPublicId(String url) {
+        // Tách phần mở rộng
+        String[] urlParts = url.split("\\.");
+        String publicIdWithFolder = urlParts[0]; // Lấy phần không có mở rộng
 
+        // Tách theo dấu '/'
+        String[] pathParts = publicIdWithFolder.split("/");
+        String publicId = pathParts[pathParts.length - 2] + "/" + pathParts[pathParts.length - 1]; // Lấy phần cuối cùng
+
+        return publicId;
+    }
 }
