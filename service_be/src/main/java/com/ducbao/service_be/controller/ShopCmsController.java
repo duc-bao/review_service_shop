@@ -1,41 +1,36 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.ShopRequest;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
-import com.ducbao.service_be.service.FileService;
 import com.ducbao.service_be.service.ShopService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@Slf4j
-@RequestMapping("/shops")
+@RequestMapping("/cms/shops")
 @RequiredArgsConstructor
-public class ShopController {
+@Slf4j
+public class ShopCmsController {
     private final ShopService shopService;
 
     @Operation(
-            summary = "Tạo cửa hàng với người dùng",
-            description = "Api tạo cửa hàng ",
-            tags = {"users:shops"})
+            summary = "Kích hoạt cửa hàng",
+            description = "Api Kích hoạt cửa hàng ",
+            tags = {"admin:shops"})
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "SHOP1000", description = "Tạo cửa hàng với người dùng", content = {@Content(examples = @ExampleObject(value = """
+                    responseCode = "SHOP1000", description = "Kích hoạt cửa hàng thành công", content = {@Content(examples = @ExampleObject(value = """
                      {
                           "success": true,
-                          "message": "Tạo cửa hàng với người dùng",
+                          "message": "Kích hoạt cửa hàng thành công",
                           "data": {
                                  "id": "670d0668c50bc3586429fdc1",
                                  "name": "Nhà hàng của Bảo",
@@ -47,8 +42,8 @@ public class ShopController {
                                  ],
                                  "description": "Nhà hàng món ăn hàng đầu về chất lượng",
                                  "urlWebsite": "https://quannhautudo.com/bai-viet/quan-nhau-chill-ha-noi-163.htm",
-                                 "statusShopEnums": "DEACTIVE",
-                                 "very": false,
+                                 "statusShopEnums": "ACTIVE",
+                                 "very": true,
                                  "listIdOpenTime": [
                                        "670d04f24e531645e73f8984",
                                        "670d04f24e531645e73f8985",
@@ -60,40 +55,15 @@ public class ShopController {
                     """))}
             ),
     })
-    @PostMapping("/create-shop")
-    public ResponseEntity<ResponseDto<ShopResponse>> createShop(@RequestBody ShopRequest shopRequest) {
-        return shopService.createShop(shopRequest);
-    }
-
-
-
-
-
-    @Operation(
-            summary = "Tải ảnh của cửa hàng lên hệ thống",
-            description = "Api tải ảnh của cửa hàng lên hệ thống",
-            tags = {"users:shops"}
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
-                     {
-                    	"success": true,
-                    	"message": "Tải ảnh cửa hàng lên thành công",
-                    	"data": "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
-                    	"statusCode": "SHOP1002"
-                    }
-                    """))}
-            ),
-    })
-    @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<String>> uploadImageShop(MultipartFile file) {
-        return shopService.uploadImagme(file);
+    @PutMapping("/active-shop")
+    public ResponseEntity<ResponseDto<ShopResponse>> activateShop(@RequestParam String idShop) {
+        return shopService.activeShop(idShop);
     }
 
     @Operation(
             summary = "Lấy thông tin cửa hàng với id",
             description = "Api Lấy thông tin cửa hàng với id ",
-            tags = {"users:shops"})
+            tags = {"admin:shops"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """

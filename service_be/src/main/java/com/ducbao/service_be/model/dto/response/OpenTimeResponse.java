@@ -1,24 +1,19 @@
-package com.ducbao.common.model.entity;
+package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.enums.DayOfWeekEnums;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
 
 @Data
-@SuperBuilder
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
-public class OpenTimeBaseModel extends BaseModel {
-    @Id
+public class OpenTimeResponse {
     private String id;
-
     private DayOfWeekEnums dayOfWeekEnum;
-
-    private boolean isDayOff;
-
     private String openTime;
-
     private String closeTime;
-
+    private boolean isDayOff;
 }
