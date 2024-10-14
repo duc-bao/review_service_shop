@@ -18,7 +18,6 @@ public class CategoryBaseModel extends BaseModel {
     @Id
     private String id;
 
-    @Indexed(unique=true)
     private String name;
 
     private CategoryEnums type;

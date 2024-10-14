@@ -55,15 +55,17 @@ public class JwtService {
         claims.put("role", role);
 
         String tokenGenerate = Jwts.builder()
-                .subject(userModel.getId())
                 .setIssuedAt(now)
                 .setClaims(claims)
+                .setSubject(userModel.getId())
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, getSignKey())
                 .compact();
 
         RBucket<String> token = redisson.getBucket(tokenGenerate);
+        log.info("Retrieved userId from Redis: {}", userModel.getId());
         token.set(userModel.getId(), expireToken, TimeUnit.MILLISECONDS);
+        log.info("ID after saving to Redis: {}", token.get());
         return tokenGenerate;
     }
 
@@ -125,7 +127,7 @@ public class JwtService {
                         .setSigningKey(getSignKey())
                         .build()
                         .parseClaimsJws(authToken)
-                        .getPayload();
+                        .getBody();
 
                 userId = claims.getSubject();
             } catch (Exception e) {
@@ -134,7 +136,7 @@ public class JwtService {
             }
 
             // Get user access token from redis and validate
-            RBucket<String> bucket = redisson.getBucket(RedisConstant.KEY_TOKEN + userId);
+            RBucket<String> bucket = redisson.getBucket(authToken);
             String jwtsFromRedis = bucket.get();
 
             if (!Util.isNullOrEmpty(jwtsFromRedis) && !Util.isNullOrEmpty(userId) && jwtsFromRedis.equals(userId)) {

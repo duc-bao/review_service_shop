@@ -30,6 +30,14 @@ public enum StatusCodeEnum {
     USER1001("USER1001"), // Save user not successfully
     USER1002("USER1002"), // Not found account
     USER1003("USER1003"), // Active account successfully
+    USER1004("USER1004"), // Upload image success
+
+    // Shop
+    SHOP("SHOP"), // SHOP
+    SHOP1000("SHOP1000"), // Save shop successfully
+    SHOP1001("SHOP1001"), // Save shop not successfully
+    SHOP1002("SHOP1002"), // Upload image successfully
+
     ;
     public final String value;
 

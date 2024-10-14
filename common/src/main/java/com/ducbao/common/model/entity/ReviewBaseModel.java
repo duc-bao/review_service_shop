@@ -15,7 +15,6 @@ public class ReviewBaseModel extends BaseModel {
     @Id
     private String id;
 
-    @Indexed(unique = true)
     private String reviewTitle;
 
     private String reviewContent;

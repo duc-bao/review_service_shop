@@ -18,7 +18,6 @@ public class UserBaseModel extends BaseModel {
     @Id
     private String id;
 
-    @Indexed(unique = true)
     private String username;
 
     private String password;

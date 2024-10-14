@@ -1,26 +1,22 @@
-package com.ducbao.common.model.entity;
+package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.enums.StatusShopEnums;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.List;
-
 @Data
-@SuperBuilder
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
-public class ShopBaseModel extends BaseModel {
-    @Id
+public class ShopResponse {
     private String id;
 
     private String name;
 
     private String avatar;
-
-    private List<String> mediaUrls;
 
     private String email;
 
@@ -30,7 +26,8 @@ public class ShopBaseModel extends BaseModel {
 
     private String urlWebsite;
 
-    private String idUser;
+    private List<String> mediaUrls;
 
     private StatusShopEnums statusShopEnums;
+
 }

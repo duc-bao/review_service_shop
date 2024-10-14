@@ -144,10 +144,6 @@ public class AuthenticationService {
         );
     }
 
-    public ResponseEntity<ResponseDto<UserInfoResponse>> changeInfoUser(){
-
-    }
-
     // Tạo mã kích hoạt
     private String activationCode() {
         return UUID.randomUUID().toString();

@@ -19,7 +19,6 @@ public class ServiceBaseModel extends BaseModel {
 
     private String idShop;
 
-    @Indexed(unique = true)
     private String name;
 
     private String type;
