@@ -12,7 +12,10 @@ import org.springframework.stereotype.Component;
 public class CommonMapper {
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
-
+    // Handle Update entity
+    public <T> void maptoObject(Object source, T targetClass) {
+         modelMapper.map(source, targetClass);
+    }
     public <T> T map(Object source, Class<T> targetClass) {
         return modelMapper.map(source, targetClass);
     }

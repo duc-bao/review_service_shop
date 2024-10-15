@@ -1,6 +1,8 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.UserRequest;
+import com.ducbao.service_be.model.dto.response.UserResponse;
 import com.ducbao.service_be.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,5 +42,39 @@ public class UserController {
     @PutMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseDto<String>> uploadFile(@RequestParam("file") MultipartFile file) {
         return userService.uploadAvatar(file);
+    }
+
+    @Operation(
+            summary = "Cập nhật tài khoản thành công",
+            description = "Api Cập nhật tài khoản thành công ",
+            tags = {"users"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Cập nhật tài khoản thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Cập nhật tài khoản thành công",
+                          "data": {
+                               "id": "6704f957a77f0442b1e32a23",
+                               "username": "ducbao",
+                               "email": "anhbao200222@britizhschool.edu.pl",
+                               "phone": "0203032671",
+                               "city": "asssccccs",
+                               "avatar": "https://example.com/avatar.jpg",
+                               "ward": "Ward 3",
+                               "district": "District 1",
+                               "firstName": "Dca",
+                               "lastName": "Baccc",
+                               "dateOfBirth": null
+                          },
+                          "statusCode": "USER1005",
+                          "meta": null
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/change-profile")
+    public ResponseEntity<ResponseDto<UserResponse>> changeProfile(@RequestBody UserRequest userRequest) {
+        return userService.changeProfile(userRequest);
     }
 }

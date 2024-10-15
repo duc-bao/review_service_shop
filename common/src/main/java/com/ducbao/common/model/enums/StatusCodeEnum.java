@@ -31,7 +31,7 @@ public enum StatusCodeEnum {
     USER1002("USER1002"), // Not found account
     USER1003("USER1003"), // Active account successfully
     USER1004("USER1004"), // Upload image success
-
+    USER1005("USER1005"), // Update user success
     // Shop
     SHOP("SHOP"), // SHOP
     SHOP1000("SHOP1000"), // Save shop successfully
