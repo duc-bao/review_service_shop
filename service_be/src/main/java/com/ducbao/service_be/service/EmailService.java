@@ -59,6 +59,11 @@ public class EmailService {
                     .replace("[[name]]", (String) emailRequest.getParam().getOrDefault("name", ""))
                     .replace("[[URL]]", (String) emailRequest.getParam().getOrDefault("verificationUrl", ""));
         }
+        if(emailRequest.getTemplateCode() != null && emailRequest.getTemplateCode().equals("FORGOT")) {
+            content = AppConstants.CONTENT_SHOP_ACTIVATION
+                    .replace("[[name]]", (String) emailRequest.getParam().getOrDefault("name", ""))
+                    .replace("[[URL]]", (String) emailRequest.getParam().getOrDefault("verificationUrl", ""));
+        }
         bodyMap.put("htmlContent", content);
         log.info("Sending email with content: {}", content);
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(bodyMap, headers);

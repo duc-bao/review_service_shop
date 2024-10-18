@@ -1,5 +1,6 @@
 package com.ducbao.service_be.model.dto.response;
 
+import com.ducbao.common.model.enums.CategoryEnums;
 import com.ducbao.common.model.enums.StatusShopEnums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,4 +43,6 @@ public class ShopGetResponse {
     private BigDecimal longitude;
 
     private BigDecimal latitude;
+
+    private CategoryEnums categoryEnum;
 }

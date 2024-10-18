@@ -1,6 +1,8 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.UserChangePassword;
+import com.ducbao.service_be.model.dto.request.UserForgotPassword;
 import com.ducbao.service_be.model.dto.request.UserRequest;
 import com.ducbao.service_be.model.dto.response.UserResponse;
 import com.ducbao.service_be.service.UserService;
@@ -77,4 +79,107 @@ public class UserController {
     public ResponseEntity<ResponseDto<UserResponse>> changeProfile(@RequestBody UserRequest userRequest) {
         return userService.changeProfile(userRequest);
     }
+
+    @Operation(
+            summary = "Gửi mật khẩu tạm thời cho việc quên mật khẩu ",
+            description = "Api Gửi mật khẩu tạm thời cho việc quên mật khẩu",
+            tags = {"users"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "USER1000", description = "Đã gửi mật khẩu tạm thời thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Đã gửi mật khẩu tạm thời thành công",
+                          "data": {
+                               "id": "6704f957a77f0442b1e32a23",
+                               "username": "ducbao",
+                               "email": "anhbao200222@britizhschool.edu.pl",
+                               "phone": "0203032671",
+                               "city": "asssccccs",
+                               "avatar": "https://example.com/avatar.jpg",
+                               "ward": "Ward 3",
+                               "district": "District 1",
+                               "firstName": "Dca",
+                               "lastName": "Baccc",
+                               "dateOfBirth": null
+                          },
+                          "statusCode": "USER1000",
+                          "meta": null
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ResponseDto<UserResponse>> forgotPassword(@RequestBody UserForgotPassword userForgotPassword) {
+        return userService.forgotPassword(userForgotPassword);
+    }
+
+    @Operation(
+            summary = "Thay đổi mật khẩu",
+            description = "Api Thay đổi mật khẩu",
+            tags = {"users"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "USER1001", description = "Đổi mật khẩu thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Đổi mật khẩu thành công",
+                          "data": {
+                               "id": "6704f957a77f0442b1e32a23",
+                               "username": "ducbao",
+                               "email": "anhbao200222@britizhschool.edu.pl",
+                               "phone": "0203032671",
+                               "city": "asssccccs",
+                               "avatar": "https://example.com/avatar.jpg",
+                               "ward": "Ward 3",
+                               "district": "District 1",
+                               "firstName": "Dca",
+                               "lastName": "Baccc",
+                               "dateOfBirth": null
+                          },
+                          "statusCode": "USER1001",
+                          "meta": null
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseDto<UserResponse>> changePassword(@RequestBody UserChangePassword userChangePassword) {
+        return userService.changePassword(userChangePassword);
+    }
+
+    @Operation(
+            summary = "Lấy thông tin user theo Id",
+            description = "Api Lấy thông tin user theo Id",
+            tags = {"users"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "USER1006", description = "Lấy thông tin tài khoản theo id thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thông tin tài khoản theo id thành công",
+                          "data": {
+                               "id": "6704f957a77f0442b1e32a23",
+                               "username": "ducbao",
+                               "email": "anhbao200222@britizhschool.edu.pl",
+                               "phone": "0203032671",
+                               "city": "asssccccs",
+                               "avatar": "https://example.com/avatar.jpg",
+                               "ward": "Ward 3",
+                               "district": "District 1",
+                               "firstName": "Dca",
+                               "lastName": "Baccc",
+                               "dateOfBirth": null
+                          },
+                          "statusCode": "USER1006",
+                          "meta": null
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<UserResponse>> getUserById(@PathVariable String id) {
+        return userService.getUserById(id);
+    }
+
 }

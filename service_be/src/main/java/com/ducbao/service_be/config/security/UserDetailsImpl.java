@@ -5,6 +5,7 @@ import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,6 +23,7 @@ public class UserDetailsImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserModel userModel = userRepository.findByUsername(username).get();
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        grantedAuthorities.addAll(userModel.getAuthorities());
         User user = new User(userModel.getUsername(), userModel.getPassword(), grantedAuthorities);
         return user;
     }
@@ -29,6 +31,7 @@ public class UserDetailsImpl implements UserDetailsService {
     public UserDetails loadUserById(String id) {
         UserModel userModel = userRepository.findById(id).get();
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        grantedAuthorities.addAll(userModel.getAuthorities());
         User user = new User(userModel.getUsername(), userModel.getPassword(), grantedAuthorities);
         return user;
     }

@@ -1,5 +1,6 @@
 package com.ducbao.service_be.model.dto.request;
 
+import com.ducbao.common.model.enums.CategoryEnums;
 import lombok.Data;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public class ShopUpdateRequest {
     private List<OpenTimeRequest> openTimeRequests;
 
     private String avatar;
+
+    private CategoryEnums categoryEnum;
 }

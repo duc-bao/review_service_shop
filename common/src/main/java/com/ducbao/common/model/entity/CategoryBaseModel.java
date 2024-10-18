@@ -22,10 +22,9 @@ public class CategoryBaseModel extends BaseModel {
 
     private CategoryEnums type;
 
-    private String idShop;
-
     private String parentId;
 
     private String description;
 
+    private boolean isDelete;
 }
