@@ -17,4 +17,6 @@ public class AppConstants {
     public static final String CONTENT_SHOP_ACTIVATION = "Hello, [[name]]! Your shop has been successfully activated. You can start managing your shop at:" +  "<a href=\\\"[[URL]]\\\" target=\\\"_self\\\" style=\\\"color: rgb(0, 123, 255); background-color: \" +\n" +
             "            \"transparent; font-size: 16px; letter-spacing: normal;\\\">Di chuyển</a>.";
     public static final String LINK_SHOP = "http://localhost:8080/auth/shop";
+    public static final String FORGOT = "Chào bạn, chúng tôi xin gửi đến bạn mật khẩu mới tạm thời";
+    public static final String FORGOT_PASSWORD = "Chào bạn [[name]], Mật khẩu tạm thời mới của bạn sẽ là" + "<b> [[URL]] </b>" + ".Bạn vui lòng đăng nhập bằng mật khẩu này và vui lòng đổi lại mật khẩu";
 }

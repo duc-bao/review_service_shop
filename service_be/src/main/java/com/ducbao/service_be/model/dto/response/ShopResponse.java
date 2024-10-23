@@ -1,6 +1,8 @@
 package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.entity.OpenTimeBaseModel;
+import com.ducbao.common.model.enums.CategoryEnums;
+import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusShopEnums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -43,4 +46,12 @@ public class ShopResponse {
     private BigDecimal longitude;
 
     private BigDecimal latitude;
+
+    private CategoryEnums categoryEnum;
+
+    private StateServiceEnums stateService;
+
+    private String idCategory;
+
+    private boolean isDelete;
 }

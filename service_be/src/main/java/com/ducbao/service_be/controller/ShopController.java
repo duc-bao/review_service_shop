@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
+import com.ducbao.service_be.model.dto.response.ServiceResponse;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
 import com.ducbao.service_be.service.FileService;
@@ -18,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -66,11 +69,32 @@ public class ShopController {
     }
 
 
-
-
+    @Operation(
+            summary = "Tải nhiều ảnh của cửa hàng lên hệ thống",
+            description = "Api tải nhiều ảnh của cửa hàng lên hệ thống",
+            tags = {"users:shops"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "SHOP1002", description = "Tải nhiều ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                    	"success": true,
+                    	"message": "Tải nhiều ảnh cửa hàng lên thành công",
+                    	"data": [
+                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
+                                 ],
+                    	"statusCode": "SHOP1002"
+                    }
+                    """))}
+            ),
+    })
+    @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseDto<String>> uploadImageShop(MultipartFile file) {
+        return shopService.uploadImagme(file);
+    }
 
     @Operation(
-            summary = "Tải ảnh của cửa hàng lên hệ thống",
+            summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
             description = "Api tải ảnh của cửa hàng lên hệ thống",
             tags = {"users:shops"}
     )
@@ -85,9 +109,9 @@ public class ShopController {
                     """))}
             ),
     })
-    @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<String>> uploadImageShop(MultipartFile file) {
-        return shopService.uploadImagme(file);
+    @PutMapping(value = "upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(MultipartFile[] files) {
+        return shopService.uploadMultiFile(files);
     }
 
     @Operation(
@@ -127,5 +151,51 @@ public class ShopController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(@PathVariable("id") String id) {
         return shopService.getShopById(id);
+    }
+
+    @Operation(
+            summary = "Lấy dịch vụ của cửa hàng theo id",
+            description = "Api Lấy dịch vụ của cửa hàng theo id",
+            tags = {"users:shops"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy dịch vụ của cửa hàng theo id", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy dịch vụ của cửa hàng theo id thành công",
+                          "data": {
+                                 "success": true,
+                          "message": "Cập nhật dịch vụ thành công",
+                          "data": {
+                              "id": "6718c25e43333b7137e625f9",
+                              "idShop": "6718c19c43333b7137e625f8",
+                              "name": "CSCCS",
+                              "type": null,
+                              "description": "nhà hàng àlsclslcslcs",
+                              "thumbnail": "âcsccscs",
+                              "mediaUrl": [
+                                  "accccccaaa"
+                              ],
+                              "idCategory": null,
+                              "city": "HCM",
+                              "ward": "Quận 1",
+                              "district": "Phong vũ",
+                              "countReview": 10,
+                              "longitude": 10,
+                              "latitude": 10,
+                              "point": 10,
+                              "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                          statusCode: "SERVICE1000"
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/service/{id}")
+    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
+        return shopService.getServiceById(id);
     }
 }

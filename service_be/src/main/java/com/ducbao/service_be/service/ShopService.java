@@ -4,20 +4,21 @@ import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.constant.FileConstant;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.entity.OpenTimeBaseModel;
+import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.model.enums.StatusShopEnums;
 import com.ducbao.service_be.model.constant.AppConstants;
 import com.ducbao.service_be.model.dto.request.EmailRequest;
+import com.ducbao.service_be.model.dto.request.ServiceRequest;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
-import com.ducbao.service_be.model.dto.response.EmailResponse;
-import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
-import com.ducbao.service_be.model.dto.response.ShopGetResponse;
-import com.ducbao.service_be.model.dto.response.ShopResponse;
+import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.model.entity.OpenTimeModel;
+import com.ducbao.service_be.model.entity.ServiceModel;
 import com.ducbao.service_be.model.entity.ShopModel;
 import com.ducbao.service_be.model.entity.UserModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.OpenTimeRepository;
+import com.ducbao.service_be.repository.ServiceRepository;
 import com.ducbao.service_be.repository.ShopRepository;
 import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +43,7 @@ public class ShopService {
     private final FileService fileService;
     private final OpenTimeRepository openTimeRepository;
     private final EmailService emailService;
+    private final ServiceRepository serviceRepository;
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
         String idUser = userService.userId();
@@ -184,6 +187,22 @@ public class ShopService {
         );
     }
 
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile [] files){
+        String idUser = userService.userId();
+        List<String> mediaUrls = new ArrayList<>();
+
+        for(MultipartFile file : files){
+            String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
+            mediaUrls.add(url);
+        }
+        return ResponseBuilder.okResponse(
+                "Tải nhiều ảnh của cửa hàng lên thành công",
+                mediaUrls,
+                StatusCodeEnum.SHOP1002
+        );
+
+    }
+
     public ResponseEntity<ResponseDto<String>> uploadImagme(MultipartFile file) {
         String idUser = userService.userId();
         String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
@@ -192,5 +211,113 @@ public class ShopService {
                 url,
                 StatusCodeEnum.SHOP1002
         );
+    }
+
+    public ResponseEntity<ResponseDto<ServiceResponse>> createService(ServiceRequest serviceRequest) {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+
+        if (shopModel == null){
+            return  ResponseBuilder.badRequestResponse(
+                    "Cửa hàng không tồn tại",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        ServiceModel serviceModel = mapper.map(serviceRequest, ServiceModel.class);
+        serviceModel = mapShop(shopModel, serviceModel);
+
+        try {
+            serviceModel = serviceRepository.save(serviceModel);
+            return ResponseBuilder.okResponse(
+                    "Tạo dịch vụ thành công",
+                    mapper.map(serviceModel, ServiceResponse.class),
+                    StatusCodeEnum.SERVICE1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Lưu dịch vụ thất bại",
+                    StatusCodeEnum.SERVICE1001
+            );
+        }
+
+    }
+
+    public ResponseEntity<ResponseDto<ServiceResponse>> updateService(ServiceRequest serviceRequest, String id) {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if (shopModel == null){
+            return  ResponseBuilder.badRequestResponse(
+                    "Cửa hàng không tồn tại",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
+        mapper.maptoObject(serviceRequest, serviceModel);
+        try {
+            serviceModel = serviceRepository.save(serviceModel);
+            return ResponseBuilder.okResponse(
+                    "Cập nhật dịch vụ thành công",
+                    mapper.map(serviceModel, ServiceResponse.class),
+                    StatusCodeEnum.SERVICE1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Lưu dịch vụ thất bại",
+                    StatusCodeEnum.SERVICE1001
+            );
+        }
+    }
+
+    public ResponseEntity<ResponseDto<ServiceResponse>> deleteService(String id) {
+        ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
+        if (serviceModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Dịch vụ không tồn tại",
+                    StatusCodeEnum.SERVICE1001
+            );
+        }
+
+        serviceModel.setDelete(true);
+        try {
+            serviceModel = serviceRepository.save(serviceModel);
+            return ResponseBuilder.okResponse(
+                    "Xóa thành công dịch vụ",
+                    mapper.map(serviceModel, ServiceResponse.class),
+                    StatusCodeEnum.SERVICE1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Xóa không thành công",
+                    StatusCodeEnum.SERVICE1001
+            );
+        }
+    }
+
+    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(String id) {
+        ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
+        if (serviceModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Dịch vụ không tồn tại",
+                    StatusCodeEnum.SERVICE1001
+            );
+        }
+
+        return ResponseBuilder.okResponse(
+                "Lấy dịch vụ của cửa hàng theo id thành công",
+                mapper.map(serviceModel, ServiceResponse.class),
+                StatusCodeEnum.SERVICE1000
+        );
+    }
+    private ServiceModel mapShop(ShopModel shopModel, ServiceModel serviceModel) {
+        serviceModel.setIdShop(shopModel.getId());
+        serviceModel.setLatitude(shopModel.getLatitude());
+        serviceModel.setLongitude(shopModel.getLongitude());
+        serviceModel.setCity(shopModel.getCity());
+        serviceModel.setWard(shopModel.getWard());
+        serviceModel.setDistrict(shopModel.getDistrict());
+        serviceModel.setIdCategory(shopModel.getIdCategory());
+        serviceModel.setStateService(StateServiceEnums.OPEN);
+        return  serviceModel;
     }
 }

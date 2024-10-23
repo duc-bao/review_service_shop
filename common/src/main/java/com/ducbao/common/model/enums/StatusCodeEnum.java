@@ -31,7 +31,8 @@ public enum StatusCodeEnum {
     USER1002("USER1002"), // Not found account
     USER1003("USER1003"), // Active account successfully
     USER1004("USER1004"), // Upload image success
-
+    USER1005("USER1005"), // Update user success
+    USER1006("USER1006"), // Find by id successfully
     // Shop
     SHOP("SHOP"), // SHOP
     SHOP1000("SHOP1000"), // Save shop successfully
@@ -39,6 +40,24 @@ public enum StatusCodeEnum {
     SHOP1002("SHOP1002"), // Upload image successfully
     SHOP1003("1003"), // Not found shop
     SHOP1004("1004"), // Get by id success
+
+
+    // SERVICE
+    SERVICE("SERVICE"), // SERVICE
+    SERVICE1000("SERVICE1000"), // save service successfully
+    SERVICE1001("SERVICE1001"), // save service successfully
+
+
+    // Category
+    CATEGORY("CATEGORY"), // Category
+    CATEGORY1000("CATEGORY1000"), // Save category successfully,
+    CATEGORY1001("CATEGORY1001"), // Save category not successfully
+    CATEGORY1002("CATEGORY1002"), // Not found category
+    CATEGORY1003("CATEGORY1003"), // Get List category sucessfully
+    CATEGORY1004("CATEGORY1004"), // Get list category with keyword successfully
+    CATEGORY1005("CATEGORY1005"), // Get list category with filter successfully
+    CATEGORY1006("CATEGORY1006"), // Get list category with filter and keyword successfully
+
     ;
     public final String value;
 

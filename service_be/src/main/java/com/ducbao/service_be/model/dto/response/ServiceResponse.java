@@ -1,8 +1,7 @@
 package com.ducbao.service_be.model.dto.response;
 
+import com.ducbao.common.model.entity.OpenTimeBaseModel;
 import com.ducbao.common.model.enums.CategoryEnums;
-import com.ducbao.common.model.enums.StateServiceEnums;
-import com.ducbao.common.model.enums.StatusShopEnums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,30 +9,27 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShopGetResponse {
+public class ServiceResponse {
     private String id;
+
+    private String idShop;
 
     private String name;
 
-    private String avatar;
-
-    private String email;
-
-    private boolean isVery;
+    private CategoryEnums type;
 
     private String description;
 
-    private String urlWebsite;
+    private String thumbnail;
 
-    private List<String> mediaUrls;
+    private List<String> mediaUrl;
 
-    private List<OpenTimeResponse> listOpenTimes;
-
-    private StatusShopEnums statusShopEnums;
+    private String idCategory;
 
     private String city;
 
@@ -41,11 +37,13 @@ public class ShopGetResponse {
 
     private String district;
 
+    private int countReview;
+
     private BigDecimal longitude;
 
     private BigDecimal latitude;
 
-    private CategoryEnums categoryEnum;
-    private StateServiceEnums stateService;
+    private  double point;
 
+    private double price;
 }

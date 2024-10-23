@@ -1,5 +1,6 @@
 package com.ducbao.service_be.model.dto.request;
 
+import com.ducbao.common.model.enums.CategoryEnums;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -30,4 +31,7 @@ public class ShopRequest {
     private BigDecimal longitude;
 
     private BigDecimal latitude;
+
+    private CategoryEnums categoryEnum;
+    private String idCategory;
 }
