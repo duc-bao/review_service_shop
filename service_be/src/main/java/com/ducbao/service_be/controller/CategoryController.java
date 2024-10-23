@@ -1,7 +1,6 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.CategoryRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,106 +13,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/categories")
 @RequiredArgsConstructor
-@RequestMapping("/cms/categories")
-@RolesAllowed(value = "ADMIN")
-public class CategoryCMSController {
+public class CategoryController {
     private final CategoryService categoryService;
-
-    @Operation(
-            summary = "Lấy thông tin chi tiết của danh mục",
-            description = "Api Lấy thông tin chi tiết của danh mục",
-            tags = {"admin"})
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "CATEGORY1000", description = "Lấy thông tin category thành công", content = {@Content(examples = @ExampleObject(value = """
-                     {
-                          "success": true,
-                          "message": "Lấy thông tin category thành công",
-                          "data": {
-                                  "id": "6710dd81562f193049ca9929",
-                                  "name": "Nhà Hàng",
-                                  "type": "RESTAURANT",
-                                  "parentId": null,
-                                  "description": "NHà hàng đỉnh cao",
-                                  "delete": false
-                          },
-                          statusCode: "CATEGORY1000"
-                      }
-                    """))}
-            ),
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<CategoryResponse>> getCategoryById(@PathVariable String id) {
-        return categoryService.getById(id);
-    }
-
-    @Operation(
-            summary = "Tạo mới 1 bản ghi danh mục",
-            description = "Api Tạo mới 1 bản ghi danh mục",
-            tags = {"admin"})
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "CATEGORY1000", description = "Tạo mới 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """
-                     {
-                          "success": true,
-                          "message": "Lưu thể loại thành công",
-                          "data": {
-                                 "id": "6710dd81562f193049ca9929",
-                                  "name": "Nhà Hàng",
-                                  "type": "RESTAURANT",
-                                  "parentId": null,
-                                  "description": "NHà hàng đỉnh cao",
-                                  "delete": false
-                          },
-                          "statusCode": "CATEGORY1000",
-                          "meta": null
-                      }
-                    """))}
-            ),
-    })
-    @PostMapping("")
-    public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(@RequestBody CategoryRequest categoryRequest) {
-        return categoryService.createCategory(categoryRequest);
-    }
-
-    @Operation(
-            summary = "Sửa 1 bản ghi danh mục",
-            description = "Sửa 1 bản ghi danh mục",
-            tags = {"admin"})
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "CATEGORY1000", description = "Sửa 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """
-                     {
-                          "success": true,
-                          "message": "Lưu thể loại thành công",
-                          "data": {
-                                 "id": "6710dd81562f193049ca9929",
-                                 "name": "Nhà hàng",
-                                 "type": "RESTAURANT",
-                                 "parentId": null,
-                                 "description": "Nhà Hàng siêu ngon",
-                                 "delete": false
-                          },
-                          statusCode: "CATEGORY1000"
-                      }
-                    """))}
-            ),
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<ResponseDto<CategoryResponse>> updateCategory(@PathVariable String id, @RequestBody CategoryRequest categoryRequest) {
-        return categoryService.updateCategory(categoryRequest, id);
-    }
 
     @Operation(
             summary = "Lấy danh sách danh mục ",
             description = "Api Lấy danh sách danh mục ",
-            tags = {"admin"},
+            tags = {"users:cat"},
             parameters = {
                     @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
                             schema = @Schema(type = "string")),
@@ -202,6 +116,7 @@ public class CategoryCMSController {
             ),
     })
     @GetMapping("")
+    @PreAuthorize("hasAnyRole('OWNER', 'USER')")
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCategories(
             @RequestParam(value = "sort", defaultValue = "id") String sort,
             @RequestParam(value = "limit", defaultValue = "12") int limit,
@@ -213,30 +128,31 @@ public class CategoryCMSController {
     }
 
     @Operation(
-            summary = "Xóa 1 bản ghi danh mục",
-            description = "API xóa 1 bản ghi danh mục",
-            tags = {"admin"})
-    @ApiResponses({
+            summary = "Lấy thông tin chi tiết của danh mục",
+            description = "Api Lấy thông tin chi tiết của danh mục",
+            tags = {"users:cat"})
+    @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "CATEGORY1000", description = "Xóa 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """
+                    responseCode = "CATEGORY1000", description = "Lấy thông tin category thành công", content = {@Content(examples = @ExampleObject(value = """
                      {
                           "success": true,
-                          "message": "Xóa 1 bản ghi danh mụ thành công",
+                          "message": "Lấy thông tin category thành công",
                           "data": {
-                                 "id": "6710dd81562f193049ca9929",
-                                 "name": "Nhà hàng",
-                                 "type": "RESTAURANT",
-                                 "parentId": null,
-                                 "description": "Nhà Hàng siêu ngon",
-                                 "delete": true
+                                  "id": "6710dd81562f193049ca9929",
+                                  "name": "Nhà Hàng",
+                                  "type": "RESTAURANT",
+                                  "parentId": null,
+                                  "description": "NHà hàng đỉnh cao",
+                                  "delete": false
                           },
                           statusCode: "CATEGORY1000"
                       }
                     """))}
             ),
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategoryById(@PathVariable String id){
-        return categoryService.deleteCategory(id);
+    @PreAuthorize("hasAnyRole('OWNER', 'USER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<CategoryResponse>> getCategoryById(@PathVariable String id) {
+        return categoryService.getById(id);
     }
 }

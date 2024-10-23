@@ -41,6 +41,13 @@ public enum StatusCodeEnum {
     SHOP1003("1003"), // Not found shop
     SHOP1004("1004"), // Get by id success
 
+
+    // SERVICE
+    SERVICE("SERVICE"), // SERVICE
+    SERVICE1000("SERVICE1000"), // save service successfully
+    SERVICE1001("SERVICE1001"), // save service successfully
+
+
     // Category
     CATEGORY("CATEGORY"), // Category
     CATEGORY1000("CATEGORY1000"), // Save category successfully,

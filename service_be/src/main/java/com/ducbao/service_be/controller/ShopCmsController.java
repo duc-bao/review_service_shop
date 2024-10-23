@@ -1,6 +1,7 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.response.ServiceResponse;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
 import com.ducbao.service_be.service.ShopService;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cms/shops")
+@RolesAllowed(value = "ADMIN")
 @RequiredArgsConstructor
 @Slf4j
 public class ShopCmsController {
@@ -24,7 +27,7 @@ public class ShopCmsController {
     @Operation(
             summary = "Kích hoạt cửa hàng",
             description = "Api Kích hoạt cửa hàng ",
-            tags = {"admin:shops"})
+            tags = {"admin"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Kích hoạt cửa hàng thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -63,7 +66,7 @@ public class ShopCmsController {
     @Operation(
             summary = "Lấy thông tin cửa hàng với id",
             description = "Api Lấy thông tin cửa hàng với id ",
-            tags = {"admin:shops"})
+            tags = {"admin"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
@@ -97,5 +100,51 @@ public class ShopCmsController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(@PathVariable("id") String id) {
         return shopService.getShopById(id);
+    }
+
+    @Operation(
+            summary = "Lấy dịch vụ của cửa hàng theo id",
+            description = "Api Lấy dịch vụ của cửa hàng theo id",
+            tags = {"admin"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy dịch vụ của cửa hàng theo id", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy dịch vụ của cửa hàng theo id thành công",
+                          "data": {
+                                 "success": true,
+                          "message": "Cập nhật dịch vụ thành công",
+                          "data": {
+                              "id": "6718c25e43333b7137e625f9",
+                              "idShop": "6718c19c43333b7137e625f8",
+                              "name": "CSCCS",
+                              "type": null,
+                              "description": "nhà hàng àlsclslcslcs",
+                              "thumbnail": "âcsccscs",
+                              "mediaUrl": [
+                                  "accccccaaa"
+                              ],
+                              "idCategory": null,
+                              "city": "HCM",
+                              "ward": "Quận 1",
+                              "district": "Phong vũ",
+                              "countReview": 10,
+                              "longitude": 10,
+                              "latitude": 10,
+                              "point": 10,
+                              "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                          statusCode: "SERVICE1000"
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/service/{id}")
+    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
+        return shopService.getServiceById(id);
     }
 }

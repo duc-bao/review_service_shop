@@ -1,5 +1,6 @@
 package com.ducbao.common.model.entity;
 
+import com.ducbao.common.model.enums.CategoryEnums;
 import com.ducbao.common.model.enums.StateServiceEnums;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,7 @@ public class ServiceBaseModel extends BaseModel {
 
     private String name;
 
-    private String type;
+    private CategoryEnums type;
 
     private String description;
 
@@ -32,8 +33,6 @@ public class ServiceBaseModel extends BaseModel {
     private String idCategory;
 
     private StateServiceEnums stateService;
-
-    private boolean hasAnOwner;
 
     private String city;
 
@@ -47,10 +46,9 @@ public class ServiceBaseModel extends BaseModel {
 
     private BigDecimal latitude;
 
-    private List<OpenTimeBaseModel> openTimeBaseModelList;
-
     private  double point;
 
     private double price;
 
+    private boolean isDelete;
 }

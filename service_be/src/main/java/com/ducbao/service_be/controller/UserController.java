@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
-            summary = "Tải ảnh avatar user lên hệ thống",
+            summary = "Tải ảnh đại diện avatar user lên hệ thống",
             description = "Api tải ảnh avatar user lên hệ thống",
             tags = {"users"}
     )

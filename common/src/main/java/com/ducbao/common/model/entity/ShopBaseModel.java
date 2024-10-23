@@ -1,6 +1,7 @@
 package com.ducbao.common.model.entity;
 
 import com.ducbao.common.model.enums.CategoryEnums;
+import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusShopEnums;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,8 @@ public class ShopBaseModel extends BaseModel {
 
     private StatusShopEnums statusShopEnums;
 
+    private StateServiceEnums stateServiceEnums;
+
     private String city;
 
     private String ward;
@@ -50,5 +53,11 @@ public class ShopBaseModel extends BaseModel {
 
     private BigDecimal latitude;
 
+    private boolean hasAnOwner;
+
     private CategoryEnums categoryEnum;
+
+    private int countReview;
+
+    private double point;
 }
