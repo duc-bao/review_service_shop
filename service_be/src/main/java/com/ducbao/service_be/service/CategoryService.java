@@ -102,7 +102,7 @@ public class CategoryService {
     }
 
     public ResponseEntity<ResponseDto<CategoryResponse>> getById(String id) {
-        CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
+        CategoryModel categoryModel = categoryRepository.findByIdAndIsDelete(id, false);
         if(categoryModel == null){
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy thể loại cha",

@@ -143,7 +143,37 @@ public class AuthenticationService {
                 StatusCodeEnum.USER1003
         );
     }
+    public ResponseEntity<ResponseDto<Boolean>> existEmail(String email) {
+        boolean isExist = userRepository.existsByEmail(email);
+        if (isExist){
+            return ResponseBuilder.badRequestResponse(
+                    "Đã tồn tại email",
+                    true,
+                    StatusCodeEnum.USER1007
+            );
+        }
+        return ResponseBuilder.okResponse(
+                "Email chưa tồn tại",
+                false,
+                StatusCodeEnum.USER1000
+        );
+    }
 
+    public ResponseEntity<ResponseDto<Boolean>> exitsUsername(String username) {
+        boolean isExist = userRepository.existsByUsername(username);
+        if (isExist){
+            return ResponseBuilder.badRequestResponse(
+                    "Đã tồn tại username",
+                    true,
+                    StatusCodeEnum.USER1007
+            );
+        }
+        return ResponseBuilder.okResponse(
+                "Username chưa tồn tại",
+                false,
+                StatusCodeEnum.USER1000
+        );
+    }
     // Tạo mã kích hoạt
     private String activationCode() {
         return UUID.randomUUID().toString();

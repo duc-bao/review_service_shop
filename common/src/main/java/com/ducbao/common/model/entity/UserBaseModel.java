@@ -49,4 +49,11 @@ public class UserBaseModel extends BaseModel {
 
     private List<String> role;
 
+    private int quantityImage;
+
+    private int notLike;
+
+    private int helpful;
+
+    private int like;
 }
