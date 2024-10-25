@@ -12,4 +12,5 @@ public interface CategoryRepository extends MongoRepository<CategoryModel, Strin
     Page<CategoryModel> findByTypeAndIsDelete(String type,boolean isDelete ,Pageable pageable);
     Page<CategoryModel> findByNameContainingAndTypeAndIsDelete(String categoryName, String type, boolean isDelete,Pageable pageable);
     Page<CategoryModel> findAllByIsDelete(boolean isDelete, Pageable pageable);
+    CategoryModel findByIdAndIsDelete(String id,boolean isDelete);
 }

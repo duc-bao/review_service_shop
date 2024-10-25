@@ -33,4 +33,7 @@ public class ReviewBaseModel extends BaseModel {
 
     private String idUser;
 
+    private String idShop;
+
+    private boolean isEdit;
 }

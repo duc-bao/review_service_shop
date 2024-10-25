@@ -36,4 +36,14 @@ public class UserResponse {
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private Instant dateOfBirth;
+
+    private int ratingUser;
+
+    private int quantityImage;
+
+    private int notLike;
+
+    private int helpful;
+
+    private int like;
 }

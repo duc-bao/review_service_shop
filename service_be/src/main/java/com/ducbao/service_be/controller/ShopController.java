@@ -8,8 +8,10 @@ import com.ducbao.service_be.model.dto.response.ShopResponse;
 import com.ducbao.service_be.service.FileService;
 import com.ducbao.service_be.service.ShopService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -197,5 +199,143 @@ public class ShopController {
     @GetMapping("/service/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
         return shopService.getServiceById(id);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách dịch vụ ",
+            description = "Api Lấy danh sách dịch vụ ",
+            tags = {"users:cat"},
+            parameters = {
+                    @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
+                            schema = @Schema(type = "string")),
+                    @Parameter(name = "filter", description = "Điều kiện lọc cho tìm kiếm \n" +
+                            "Ví dụ: {\"type\":\"RESTAURANT\"}",
+                            required = false,
+                            schema = @Schema(type = "string"
+                            ))
+            }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1002", description = "Lấy thành công danh sách dịch vụ của cửa hàng đó với từ khóa và lọc", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thành công danh sách dịch vụ của cửa hàng đó với từ khóa và lọc",
+                          "data": [
+                             {
+                                    "id": "6718c25e43333b7137e625f9",
+                                    "idShop": "6718c19c43333b7137e625f8",
+                                    "name": "CSCCS",
+                                    "type": null,
+                                    "description": "nhà hàng àlsclslcslcs",
+                                    "thumbnail": "âcsccscs",
+                                    "mediaUrl": [
+                                      "accccccaaa"
+                                    ],
+                                    "idCategory": null,
+                                    "city": "HCM",
+                                    "ward": "Quận 1",
+                                    "district": "Phong vũ",
+                                    "countReview": 10,
+                                    "longitude": 10,
+                                    "latitude": 10,
+                                    "point": 10,
+                                    "price": 5000000
+                                  }
+                          ],
+                          "statusCode": "SERVICE1002",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+            @ApiResponse(
+                    responseCode = "SERVICE1002", description = "Lấy thành công danh sách dịch vụ của cửa hàng đó với từ khóa ", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách danh mục với lọc thành công",
+                          "data": [
+                            {
+                                    "id": "6718c25e43333b7137e625f9",
+                                    "idShop": "6718c19c43333b7137e625f8",
+                                    "name": "CSCCS",
+                                    "type": null,
+                                    "description": "nhà hàng àlsclslcslcs",
+                                    "thumbnail": "âcsccscs",
+                                    "mediaUrl": [
+                                      "accccccaaa"
+                                    ],
+                                    "idCategory": null,
+                                    "city": "HCM",
+                                    "ward": "Quận 1",
+                                    "district": "Phong vũ",
+                                    "countReview": 10,
+                                    "longitude": 10,
+                                    "latitude": 10,
+                                    "point": 10,
+                                    "price": 5000000
+                                  }
+                          ],
+                          "statusCode": "SERVICE1002",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+            @ApiResponse(
+                    responseCode = "SERVICE1002", description = "Lấy thành công danh sách dịch vụ của cửa hàng đó với lọc", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thành công danh sách thể loại với nội dung tìm kiếm và lọc",
+                          "data": [
+                            {
+                                    "id": "6718c25e43333b7137e625f9",
+                                    "idShop": "6718c19c43333b7137e625f8",
+                                    "name": "CSCCS",
+                                    "type": null,
+                                    "description": "nhà hàng àlsclslcslcs",
+                                    "thumbnail": "âcsccscs",
+                                    "mediaUrl": [
+                                      "accccccaaa"
+                                    ],
+                                    "idCategory": null,
+                                    "city": "HCM",
+                                    "ward": "Quận 1",
+                                    "district": "Phong vũ",
+                                    "countReview": 10,
+                                    "longitude": 10,
+                                    "latitude": 10,
+                                    "point": 10,
+                                    "price": 5000000
+                                  }
+                          ],
+                          "statusCode": "SERVICE1002",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/service")
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getAllService(
+            @RequestParam(value = "sort", defaultValue = "createAt") String s,
+            @RequestParam(value = "limit", defaultValue = "12") int limit,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "keyword" , required = false) String q,
+            @RequestParam(value = "filter", required = false) String filter
+    ){
+        return shopService.getAllService(limit, page, s, q, filter);
     }
 }

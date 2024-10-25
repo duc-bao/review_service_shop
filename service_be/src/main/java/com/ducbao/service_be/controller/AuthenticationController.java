@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/auth")
+@SecurityRequirements(value = {})
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
@@ -38,7 +40,7 @@ public class AuthenticationController {
                                     "success":true,
                                     "message":"Đăng nhập thành công"
                                     "data":{
-                                        accessToken:"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbIlVTRVIiXSwiZW5hYmxlZCI6dHJ1ZSwic3ViIjoiNjcwNGY5NTdhNzdmMDQ0MmIxZTMyYTIzIiwiZXhwIjoxNzMwMDQ1NjY5fQ.tSt_OzN5QV29Xhqa_UFsDpBxjLIU6b7ktEE_qrDMz9Ef6tD8GHIUO0GNtnPTYRP4JmSWVYgSOnwMcFQFTgWe4w"
+                                        accessToken:"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbIlVTRVIiXSwiZW5hYmxlZCI6dHJ1ZSwic3ViIjoiNjcxYTVlZjc2YjdjMWQ0ODY5OGM2ZDcxIiwiZXhwIjoxNzMwOTkxMTMyfQ.nhv9qzZWC5OLebisxRCf33LhXj4xApwcvoRzhj7RHDAv5eU_J15mIqzs0qCOA1HtKiJ0o8szflwuGc3vZHEuqQ"
                                         userInfoResponse:{
                                             username: "anhbao",
                                             email:"truongducbao@gmail.com",
@@ -156,5 +158,87 @@ public class AuthenticationController {
     public ResponseEntity<ResponseDto<UserInfoResponse>> activeAccount(@RequestParam String code) {
         log.info("Đã đi vào đây");
         return authenticationService.activeAcount(code);
+    }
+
+    @Operation(
+            summary = "Kiểm tra xem email tồn tại hay chưa",
+            description = "Api Kiểm tra xem email tồn tại hay chưa",
+            tags = {"auth"}
+    )
+    @ApiResponses(
+            {
+                    @ApiResponse(
+                            responseCode = "USER1007",
+                            description = "Kiểm tra xem email tồn tại hay chưa",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":true,
+                                    "message":"Đã tồn tại email",
+                                    "data":{
+                                        true
+                                    },
+                                    "statusCode":"USER1007",
+                                    "meta":null}
+                                     """))}
+                    ),
+                    @ApiResponse(
+                            responseCode = "USER1000",
+                            description = "Kiểm tra xem email tồn tại hay chưa",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":false,
+                                    "message":"Email chưa tồn tại"
+                                    "data": false,
+                                    "statusCode": "USER1000",
+                                    "meta": null
+                                    }
+                                    """))}
+                    )
+            }
+    )
+    @GetMapping("/exists-email")
+    public ResponseEntity<ResponseDto<Boolean>> existsEmail(@RequestParam String email) {
+        return authenticationService.existEmail(email);
+    }
+
+    @Operation(
+            summary = "Kiểm tra xem username tồn tại hay chưa",
+            description = "Api Kiểm tra xem username tồn tại hay chưa",
+            tags = {"auth"}
+    )
+    @ApiResponses(
+            {
+                    @ApiResponse(
+                            responseCode = "USER1007",
+                            description = "Kiểm tra xem username tồn tại hay chưa",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":true,
+                                    "message":"Đã tồn tại username",
+                                    "data":{
+                                        true
+                                    },
+                                    "statusCode":"USER1007",
+                                    "meta":null}
+                                     """))}
+                    ),
+                    @ApiResponse(
+                            responseCode = "USER1000",
+                            description = "Kiểm tra xem username tồn tại hay chưa",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":false,
+                                    "message":"username chưa tồn tại"
+                                    "data": false,
+                                    "statusCode": "USER1000",
+                                    "meta": null
+                                    }
+                                    """))}
+                    )
+            }
+    )
+    @GetMapping("/exists-username")
+    public ResponseEntity<ResponseDto<Boolean>> existsUserName(@RequestParam String username) {
+        return authenticationService.exitsUsername(username);
     }
 }

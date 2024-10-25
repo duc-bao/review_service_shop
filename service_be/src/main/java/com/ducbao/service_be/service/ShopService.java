@@ -2,20 +2,19 @@ package com.ducbao.service_be.service;
 
 import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.constant.FileConstant;
+import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.entity.OpenTimeBaseModel;
 import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.model.enums.StatusShopEnums;
+import com.ducbao.common.util.Util;
 import com.ducbao.service_be.model.constant.AppConstants;
 import com.ducbao.service_be.model.dto.request.EmailRequest;
 import com.ducbao.service_be.model.dto.request.ServiceRequest;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
 import com.ducbao.service_be.model.dto.response.*;
-import com.ducbao.service_be.model.entity.OpenTimeModel;
-import com.ducbao.service_be.model.entity.ServiceModel;
-import com.ducbao.service_be.model.entity.ShopModel;
-import com.ducbao.service_be.model.entity.UserModel;
+import com.ducbao.service_be.model.entity.*;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.OpenTimeRepository;
 import com.ducbao.service_be.repository.ServiceRepository;
@@ -23,6 +22,11 @@ import com.ducbao.service_be.repository.ShopRepository;
 import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,7 +68,7 @@ public class ShopService {
                 openTimeRequest -> mapper.map(openTimeRequest, OpenTimeModel.class)).collect(Collectors.toList());
         openTimeBaseModelList = openTimeRepository.saveAll(openTimeBaseModelList);
         log.info(openTimeBaseModelList.toString());
-        shopModel.setListIdOpenTime(openTimeBaseModelList.stream().map(OpenTimeBaseModel::getId).collect(Collectors.toList()))  ;
+        shopModel.setListIdOpenTime(openTimeBaseModelList.stream().map(OpenTimeBaseModel::getId).collect(Collectors.toList()));
         try {
             shopModel = shopRepository.save(shopModel);
             return ResponseBuilder.okResponse(
@@ -85,14 +89,14 @@ public class ShopService {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
 
-        if (shopModel == null){
+        if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng",
                     StatusCodeEnum.SHOP1003
             );
         }
         List<String> mediaUrls = shopModel.getMediaUrls();
-        if(mediaUrls != null && mediaUrls.size() > 0){
+        if (mediaUrls != null && mediaUrls.size() > 0) {
             mediaUrls.addAll(shopRequest.getMediaUrls());
         }
         shopModel.setMediaUrls(mediaUrls);
@@ -104,7 +108,7 @@ public class ShopService {
                     mapper.map(shopModel, ShopResponse.class),
                     StatusCodeEnum.SHOP1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Cập nhật cửa hàng thất bại",
                     StatusCodeEnum.SHOP1001
@@ -121,7 +125,7 @@ public class ShopService {
             );
         }
 
-        if(shopModel.isVery() || shopModel.getStatusShopEnums().equals("ACTIVE")){
+        if (shopModel.isVery() || shopModel.getStatusShopEnums().equals("ACTIVE")) {
             return ResponseBuilder.okResponse(
                     "Cửa hàng đã được kích hoạt",
                     mapper.map(shopModel, ShopResponse.class),
@@ -156,7 +160,7 @@ public class ShopService {
                     mapper.map(shopModel, ShopResponse.class),
                     StatusCodeEnum.SHOP1000
             );
-        }catch (Exception e) {
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lưu thất bại ",
                     StatusCodeEnum.SHOP1001
@@ -166,8 +170,8 @@ public class ShopService {
 
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(String id) {
         ShopModel shopModel = shopRepository.findById(id).orElse(null);
-        if (shopModel == null){
-            return  ResponseBuilder.badRequestResponse(
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
                     "Cửa hàng không tồn tại",
                     StatusCodeEnum.SHOP1003
             );
@@ -187,11 +191,11 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile [] files){
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile[] files) {
         String idUser = userService.userId();
         List<String> mediaUrls = new ArrayList<>();
 
-        for(MultipartFile file : files){
+        for (MultipartFile file : files) {
             String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
             mediaUrls.add(url);
         }
@@ -217,8 +221,8 @@ public class ShopService {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
 
-        if (shopModel == null){
-            return  ResponseBuilder.badRequestResponse(
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
                     "Cửa hàng không tồn tại",
                     StatusCodeEnum.SHOP1003
             );
@@ -234,7 +238,7 @@ public class ShopService {
                     mapper.map(serviceModel, ServiceResponse.class),
                     StatusCodeEnum.SERVICE1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lưu dịch vụ thất bại",
                     StatusCodeEnum.SERVICE1001
@@ -246,8 +250,8 @@ public class ShopService {
     public ResponseEntity<ResponseDto<ServiceResponse>> updateService(ServiceRequest serviceRequest, String id) {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
-        if (shopModel == null){
-            return  ResponseBuilder.badRequestResponse(
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
                     "Cửa hàng không tồn tại",
                     StatusCodeEnum.SHOP1003
             );
@@ -261,7 +265,7 @@ public class ShopService {
                     mapper.map(serviceModel, ServiceResponse.class),
                     StatusCodeEnum.SERVICE1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lưu dịch vụ thất bại",
                     StatusCodeEnum.SERVICE1001
@@ -271,7 +275,7 @@ public class ShopService {
 
     public ResponseEntity<ResponseDto<ServiceResponse>> deleteService(String id) {
         ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
-        if (serviceModel == null){
+        if (serviceModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Dịch vụ không tồn tại",
                     StatusCodeEnum.SERVICE1001
@@ -286,7 +290,7 @@ public class ShopService {
                     mapper.map(serviceModel, ServiceResponse.class),
                     StatusCodeEnum.SERVICE1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Xóa không thành công",
                     StatusCodeEnum.SERVICE1001
@@ -295,8 +299,8 @@ public class ShopService {
     }
 
     public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(String id) {
-        ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
-        if (serviceModel == null){
+        ServiceModel serviceModel = serviceRepository.findByIdAndIsDelete(id, false);
+        if (serviceModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Dịch vụ không tồn tại",
                     StatusCodeEnum.SERVICE1001
@@ -309,6 +313,96 @@ public class ShopService {
                 StatusCodeEnum.SERVICE1000
         );
     }
+
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getAllService(int limit, int page, String s, String q, String filter) {
+        Sort sort = Sort.by(Sort.Direction.DESC, s);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort);
+
+        if (!Util.isNullOrEmpty(q) && !Util.isNullOrEmpty(filter)) {
+            JSONObject jsonObject = new JSONObject(filter);
+            Page<ServiceModel> serviceModelPage = serviceRepository.findByNameAndTypeAndIsDelete(q, jsonObject.get("type").toString(), false, pageable);
+            List<ServiceModel> serviceModels = serviceModelPage.getContent();
+            List<ServiceResponse> serviceResponses = serviceModels.stream()
+                    .map(serviceModel -> mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
+
+            MetaData metaData = MetaData.builder()
+                    .totalPage(serviceModelPage.getTotalPages())
+                    .currentPage(page)
+                    .total(serviceModelPage.getTotalElements())
+                    .pageSize(limit)
+                    .build();
+
+            return ResponseBuilder.okResponse(
+                    "Lấy thành công danh sách dịch vụ của cửa hàng đó với từ khóa và lọc",
+                    serviceResponses,
+                    metaData,
+                    StatusCodeEnum.SERVICE1002
+            );
+        }
+
+        if (!Util.isNullOrEmpty(q)) {
+            Page<ServiceModel> serviceModelPage = serviceRepository.findByNameContainingAndIsDelete(q, false, pageable);
+            List<ServiceModel> serviceModels = serviceModelPage.getContent();
+            List<ServiceResponse> serviceResponses = serviceModels.stream()
+                    .map(serviceModel -> mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
+
+            MetaData metaData = MetaData.builder()
+                    .totalPage(serviceModelPage.getTotalPages())
+                    .currentPage(page)
+                    .total(serviceModelPage.getTotalElements())
+                    .pageSize(limit)
+                    .build();
+
+            return ResponseBuilder.okResponse(
+                    "Lấy thành công danh sách dịch vụ của cửa hàng đó với từ khóa",
+                    serviceResponses,
+                    metaData,
+                    StatusCodeEnum.SERVICE1002
+            );
+        }
+
+        if (!Util.isNullOrEmpty(filter)) {
+            JSONObject jsonObject = new JSONObject(filter);
+            Page<ServiceModel> serviceModelPage = serviceRepository.findByTypeAndIsDelete(jsonObject.get("type").toString(), false, pageable);
+            List<ServiceModel> serviceModels = serviceModelPage.getContent();
+            List<ServiceResponse> serviceResponses = serviceModels.stream()
+                    .map(serviceModel -> mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
+
+            MetaData metaData = MetaData.builder()
+                    .totalPage(serviceModelPage.getTotalPages())
+                    .currentPage(page)
+                    .total(serviceModelPage.getTotalElements())
+                    .pageSize(limit)
+                    .build();
+
+            return ResponseBuilder.okResponse(
+                    "Lấy thành công danh sách dịch vụ của cửa hàng đó với lọc",
+                    serviceResponses,
+                    metaData,
+                    StatusCodeEnum.SERVICE1002
+            );
+        }
+
+        Page<ServiceModel> serviceModels = serviceRepository.findAllByIsDelete(false, pageable);
+        List<ServiceModel> serviceModels1 = serviceModels.getContent();
+        List<ServiceResponse> categoryResponseList = serviceModels1.stream().map(
+                serviceModel -> mapper.map(serviceModel, ServiceResponse.class)
+        ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .totalPage(serviceModels.getTotalPages())
+                .currentPage(page)
+                .total(serviceModels.getTotalElements())
+                .pageSize(limit)
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy thành công danh sách dịch vụ cửa hàng đó",
+                categoryResponseList,
+                metaData,
+                StatusCodeEnum.SERVICE1002
+        );
+    }
+
     private ServiceModel mapShop(ShopModel shopModel, ServiceModel serviceModel) {
         serviceModel.setIdShop(shopModel.getId());
         serviceModel.setLatitude(shopModel.getLatitude());
@@ -318,6 +412,6 @@ public class ShopService {
         serviceModel.setDistrict(shopModel.getDistrict());
         serviceModel.setIdCategory(shopModel.getIdCategory());
         serviceModel.setStateService(StateServiceEnums.OPEN);
-        return  serviceModel;
+        return serviceModel;
     }
 }
