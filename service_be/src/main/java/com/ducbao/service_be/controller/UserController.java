@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +82,7 @@ public class UserController {
         return userService.changeProfile(userRequest);
     }
 
+    @SecurityRequirements( value = {})
     @Operation(
             summary = "Gửi mật khẩu tạm thời cho việc quên mật khẩu ",
             description = "Api Gửi mật khẩu tạm thời cho việc quên mật khẩu",

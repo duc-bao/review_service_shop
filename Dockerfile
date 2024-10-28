@@ -1,17 +1,32 @@
-#Syntax=docker/dockerfile:1
-#which official Java image
+# Stage 1: Build
+FROM openjdk:21 AS build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy Maven wrapper and pom.xml into the container
+COPY . .
+
+# Download dependencies to speed up the build process
+RUN ./mvnw dependency:go-offline
+
+# Copy the source code into the container
+COPY . .
+
+# Build the Spring Boot application
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Run
 FROM openjdk:21
 
-# working directory
+# Set the working directory inside the container
 WORKDIR /app
-# coppy from your Host(PC, Laptop) to container ví dụ từ file .Mvn/ sang mvn của container
 
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+# Copy the built jar from the build stage
+COPY --from=build /app/target/*.jar app.jar
 
-# Run this inside the image
-RUN  ./mvnw dependency:go-offline
-COPY  src ./src
+# Expose the port that the Spring Boot application runs on
+EXPOSE 8080
 
-#run inside container
-CMD ["./mvnw", "spring-boot:run"]
+# Run the Spring Boot application
+CMD ["java", "-jar", "app.jar"]

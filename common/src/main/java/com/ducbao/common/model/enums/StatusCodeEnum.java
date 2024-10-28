@@ -13,6 +13,7 @@ public enum StatusCodeEnum {
     EXCEPTION0505("EXCEPTION0505"), // Invalid x-api-key
     EXCEPTION0506("EXCEPTION0506"), // Max size file exception
     EXCEPTION0507("EXCEPTION0507"), // Invalid value input
+    EXCEPTION1001("EXCEPTION1001"), // No login
 
     //LOGIN
     LOGIN("LOGIN"), // Login
