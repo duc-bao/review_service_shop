@@ -8,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.naming.AuthenticationException;
+
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -29,6 +31,16 @@ public class GlobalExceptionHandler {
                 .success(false)
                 .message(e.getMessage())
                 .statusCode(StatusCodeEnum.EXCEPTION0400.toString())
+                .build();
+        return ResponseEntity.ok(dto);
+    }
+    @ExceptionHandler(value = AuthenticationException.class)
+    public <T> ResponseEntity<ResponseDto<T>> handleAuthenticationException(AuthenticationException e) {
+        log.error("Exception occured", e);
+        final ResponseDto<T> dto = ResponseDto.<T>builder()
+                .success(false)
+                .message(e.getMessage())
+                .statusCode(StatusCodeEnum.EXCEPTION1001.toString())
                 .build();
         return ResponseEntity.ok(dto);
     }

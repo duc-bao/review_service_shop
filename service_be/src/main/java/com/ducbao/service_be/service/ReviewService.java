@@ -1,12 +1,16 @@
 package com.ducbao.service_be.service;
 
 import com.ducbao.common.model.builder.ResponseBuilder;
+import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.util.Util;
+import com.ducbao.service_be.model.dto.request.ReviewReactionRequest;
 import com.ducbao.service_be.model.dto.request.ReviewRequest;
 import com.ducbao.service_be.model.dto.request.ReviewUpdateRequest;
 import com.ducbao.service_be.model.dto.response.ReviewResponse;
+import com.ducbao.service_be.model.dto.response.ReviewUserResponse;
+import com.ducbao.service_be.model.dto.response.UserReviewInfo;
 import com.ducbao.service_be.model.entity.ReviewModel;
 import com.ducbao.service_be.model.entity.ServiceModel;
 import com.ducbao.service_be.model.entity.ShopModel;
@@ -19,8 +23,16 @@ import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -253,5 +265,234 @@ public class ReviewService {
                     StatusCodeEnum.REVIEW1001
             );
         }
+    }
+
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdShop(String idShop, int limit, int page, String sort) {
+
+        ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        Sort sort1 = Sort.by(Sort.Direction.DESC, sort);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort1);
+        Page<ReviewModel> reviewModelPage = reviewRepository.findByIdShop(idShop, pageable);
+        List<ReviewModel> reviewModelList = reviewModelPage.getContent();
+        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream().map(
+                reviewModel -> {
+                    ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
+                    reviewUserResponse.setUserReviewInfo(infoUser(reviewModel));
+                    return reviewUserResponse;
+                }
+        ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .total(reviewModelPage.getTotalElements())
+                .totalPage(reviewModelPage.getTotalPages())
+                .pageSize(limit)
+                .currentPage(page)
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách đánh giá theo cửa hàng thành công",
+                reviewUserResponseList,
+                metaData,
+                StatusCodeEnum.REVIEW1000
+        );
+
+    }
+
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdService(String idService, int limit, int page, String sort) {
+
+        ServiceModel serviceModel = serviceRepository.findById(idService).orElse(null);
+        if (serviceModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        Sort sort1 = Sort.by(Sort.Direction.DESC, sort);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort1);
+        Page<ReviewModel> reviewModelPage = reviewRepository.findByIdService(idService, pageable);
+        List<ReviewModel> reviewModelList = reviewModelPage.getContent();
+        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream().map(
+                reviewModel -> {
+                    ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
+                    reviewUserResponse.setUserReviewInfo(infoUser(reviewModel));
+                    return reviewUserResponse;
+                }
+        ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .total(reviewModelPage.getTotalElements())
+                .totalPage(reviewModelPage.getTotalPages())
+                .pageSize(limit)
+                .currentPage(page)
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách đánh giá theo dịch vụ thành công",
+                reviewUserResponseList,
+                metaData,
+                StatusCodeEnum.REVIEW1000
+        );
+
+    }
+
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdUser(String idUser, int limit, int page, String sort) {
+        UserModel userModel = userRepository.findById(idUser).orElse(null);
+        if (userModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Tài khoản không tồn tại",
+                    StatusCodeEnum.USER1002
+            );
+        }
+
+        Sort sort1 = Sort.by(Sort.Direction.DESC, sort);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort1);
+        Page<ReviewModel> reviewModelPage = reviewRepository.findByIdUser(idUser, pageable);
+        List<ReviewModel> reviewModelList = reviewModelPage.getContent();
+        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream().map(
+                reviewModel -> {
+                    ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
+                    reviewUserResponse.setUserReviewInfo(infoUser(reviewModel));
+                    return reviewUserResponse;
+                }
+        ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .total(reviewModelPage.getTotalElements())
+                .totalPage(reviewModelPage.getTotalPages())
+                .pageSize(limit)
+                .currentPage(page)
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách đánh giá theo tài khoản thành công",
+                reviewUserResponseList,
+                metaData,
+                StatusCodeEnum.REVIEW1000
+        );
+    }
+
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewRecently(int limit, int page, String sort) {
+        Sort sort1 = Sort.by(Sort.Direction.DESC, sort);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort1);
+        Page<ReviewModel> reviewModelPage = reviewRepository.findAll(pageable);
+        List<ReviewModel> reviewModelList = reviewModelPage.getContent();
+        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream()
+                .map(reviewModel ->  {
+                    ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
+                    reviewUserResponse.setUserReviewInfo(infoUser(reviewModel));
+                    return reviewUserResponse;
+                }).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .total(reviewModelPage.getTotalElements())
+                .totalPage(reviewModelPage.getTotalPages())
+                .pageSize(limit)
+                .currentPage(page)
+                .build();
+
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách đánh giá mới nhất thành công",
+                reviewUserResponseList,
+                metaData,
+                StatusCodeEnum.REVIEW1000
+        );
+    }
+
+    public ResponseEntity<ResponseDto<ReviewUserResponse>> updateReviewLike(String idReview, ReviewReactionRequest reviewReactionRequest){
+//        String idUser = userService.userId();
+//        UserModel userModel1 = userRepository.findById(idUser).orElse(null);
+//        if (userModel1 == null) {
+//            return ResponseBuilder.badRequestResponse(
+//                    "Tài khoản không tồn tại",
+//                    StatusCodeEnum.USER1002
+//            );
+//        }
+
+        ReviewModel reviewModel = reviewRepository.findById(idReview).orElse(null);
+        if (reviewModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Đánh giá không tồn tại",
+                    StatusCodeEnum.REVIEW1003
+            );
+        }
+
+        UserModel userModel = userRepository.findById(reviewModel.getIdUser()).orElse(null);
+        updateReactionReview(reviewModel, reviewReactionRequest);
+        updateReactionUser(userModel, reviewReactionRequest);
+        try {
+            UserReviewInfo userReviewInfo = mapper.map(userModel, UserReviewInfo.class);
+            ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
+            reviewUserResponse.setUserReviewInfo(userReviewInfo);
+            userRepository.save(userModel);
+            reviewRepository.save(reviewModel);
+
+            return ResponseBuilder.okResponse(
+                    "Cập nhật cảm xúc thành công",
+                    reviewUserResponse,
+                    StatusCodeEnum.REVIEW1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Cập nhật cảm xúc đánh giá thất bại",
+                    StatusCodeEnum.REVIEW1001
+            );
+        }
+
+    }
+
+    private void updateReactionUser(UserModel userModel, ReviewReactionRequest reviewReactionRequest) {
+        if(reviewReactionRequest.isRemove()){
+            switch (reviewReactionRequest.getType()){
+                case LIKE -> {
+                    if (userModel.getLike() <= 0) return;
+                }
+                case HELPFUL -> {
+                    if (userModel.getHelpful() <= 0) return;
+                }
+                case NOTLIKE -> {
+                    if (userModel.getNotLike() <= 0) return;
+                }
+            }
+        }
+        int change  = reviewReactionRequest.isRemove()  ? -1 : 1;
+        switch (reviewReactionRequest.getType()) {
+            case LIKE -> userModel.setLike(userModel.getLike() + change);
+            case HELPFUL -> userModel.setHelpful(userModel.getHelpful() + change);
+            case NOTLIKE -> userModel.setNotLike(userModel.getNotLike() + change);
+        }
+
+    }
+
+    private void updateReactionReview(ReviewModel reviewModel, ReviewReactionRequest reviewReactionRequest) {
+        if (reviewReactionRequest.isRemove()) {
+            switch (reviewReactionRequest.getType()) {
+                case LIKE -> {
+                    if (reviewModel.getLike() <= 0) return;
+                }
+                case HELPFUL -> {
+                    if (reviewModel.getHelpful() <= 0) return;
+                }
+                case NOTLIKE -> {
+                    if (reviewModel.getNotLike() <= 0) return;
+                }
+            }
+        }
+
+        int change  = reviewReactionRequest.isRemove()  ? -1 : 1;
+        switch (reviewReactionRequest.getType()) {
+            case LIKE -> reviewModel.setLike(reviewModel.getLike() + change);
+            case HELPFUL -> reviewModel.setHelpful(reviewModel.getHelpful() + change);
+            case NOTLIKE -> reviewModel.setNotLike(reviewModel.getNotLike() + change);
+        }
+    }
+
+    private UserReviewInfo infoUser(ReviewModel reviewModel) {
+        UserModel userModel = userRepository.findById(reviewModel.getIdUser()).orElse(null);
+        return mapper.map(userModel, UserReviewInfo.class);
     }
 }
