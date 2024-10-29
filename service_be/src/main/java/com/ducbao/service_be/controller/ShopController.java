@@ -2,6 +2,8 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
+import com.ducbao.service_be.model.dto.request.VerifyShopRequest;
+import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
 import com.ducbao.service_be.model.dto.response.ServiceResponse;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +37,7 @@ public class ShopController {
     @Operation(
             summary = "Tạo cửa hàng với người dùng",
             description = "Api tạo cửa hàng ",
-            tags = {"users:shops"})
+            tags = {"USERS:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Tạo cửa hàng với người dùng", content = {@Content(examples = @ExampleObject(value = """
@@ -74,7 +77,7 @@ public class ShopController {
     @Operation(
             summary = "Tải nhiều ảnh của cửa hàng lên hệ thống",
             description = "Api tải nhiều ảnh của cửa hàng lên hệ thống",
-            tags = {"users:shops"}
+            tags = {"USERS:SHOPS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "SHOP1002", description = "Tải nhiều ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
@@ -98,7 +101,7 @@ public class ShopController {
     @Operation(
             summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
             description = "Api tải ảnh của cửa hàng lên hệ thống",
-            tags = {"users:shops"}
+            tags = {"USERS:SHOPS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
@@ -119,7 +122,7 @@ public class ShopController {
     @Operation(
             summary = "Lấy thông tin cửa hàng với id",
             description = "Api Lấy thông tin cửa hàng với id ",
-            tags = {"users:shops"})
+            tags = {"USERS:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
@@ -158,7 +161,7 @@ public class ShopController {
     @Operation(
             summary = "Lấy dịch vụ của cửa hàng theo id",
             description = "Api Lấy dịch vụ của cửa hàng theo id",
-            tags = {"users:shops"})
+            tags = {"USERS:SERVICE"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Lấy dịch vụ của cửa hàng theo id", content = {@Content(examples = @ExampleObject(value = """
@@ -204,7 +207,7 @@ public class ShopController {
     @Operation(
             summary = "Lấy danh sách dịch vụ ",
             description = "Api Lấy danh sách dịch vụ ",
-            tags = {"users:cat"},
+            tags = {"USERS:SERVICE"},
             parameters = {
                     @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
                             schema = @Schema(type = "string")),
@@ -337,5 +340,115 @@ public class ShopController {
             @RequestParam(value = "filter", required = false) String filter
     ){
         return shopService.getAllService(limit, page, s, q, filter);
+    }
+
+    @SecurityRequirements({})
+    @Operation(
+            summary = "Lấy trung bình điểm số review của cửa hàng",
+            description = "Api trung bình điểm số review của cửa hàng",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy trung bình điểm số review của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy trung bình điểm số review của cửa hàng thành công",
+                          "data": {
+                            4.2
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/score/{id}")
+    public ResponseEntity<ResponseDto<Double>> getScoreReview(@PathVariable("id") String id){
+        return shopService.getPointReview(id);
+    }
+
+    @Operation(
+            summary = "Kích hoạt lại đúng chủ cửa hàng",
+            description = "Api Kích hoạt lại đúng chủ cửa hàng",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Kích hoạt lại đúng chủ cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Cập nhật chủ cửa hàng mới thành công vui lòng chờ admin xác nhận",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/update-active-shop/{id}")
+    public ResponseEntity<ResponseDto<ShopResponse>> updateActiveShop(@PathVariable("id") String id, @RequestBody VerifyShopRequest verifyShopRequest){
+        return shopService.updateActiveShop(id, verifyShopRequest);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách thời gian của cửa hàng",
+            description = "Api Lấy danh sách thời gian của cửa hàng",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách thời gian của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách thời gian của cửa hàng thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/get-open-time/{id}")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
+        return shopService.getListOpenTime(id);
     }
 }

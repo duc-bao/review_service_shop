@@ -29,7 +29,7 @@ public class UserController {
     @Operation(
             summary = "Tải ảnh đại diện avatar user lên hệ thống",
             description = "Api tải ảnh avatar user lên hệ thống",
-            tags = {"users"}
+            tags = {"USERS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "IMAGE1201", description = "Tải ảnh avatar lên thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -51,7 +51,7 @@ public class UserController {
     @Operation(
             summary = "Cập nhật tài khoản thành công",
             description = "Api Cập nhật tài khoản thành công ",
-            tags = {"users"})
+            tags = {"USERS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Cập nhật tài khoản thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -86,7 +86,7 @@ public class UserController {
     @Operation(
             summary = "Gửi mật khẩu tạm thời cho việc quên mật khẩu ",
             description = "Api Gửi mật khẩu tạm thời cho việc quên mật khẩu",
-            tags = {"users"})
+            tags = {"USERS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "USER1000", description = "Đã gửi mật khẩu tạm thời thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -120,7 +120,7 @@ public class UserController {
     @Operation(
             summary = "Thay đổi mật khẩu",
             description = "Api Thay đổi mật khẩu",
-            tags = {"users"})
+            tags = {"USERS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "USER1001", description = "Đổi mật khẩu thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -154,7 +154,7 @@ public class UserController {
     @Operation(
             summary = "Lấy thông tin user theo Id",
             description = "Api Lấy thông tin user theo Id",
-            tags = {"users"})
+            tags = {"USERS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "USER1006", description = "Lấy thông tin tài khoản theo id thành công", content = {@Content(examples = @ExampleObject(value = """

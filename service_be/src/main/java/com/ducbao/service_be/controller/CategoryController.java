@@ -26,7 +26,7 @@ public class CategoryController {
     @Operation(
             summary = "Lấy danh sách danh mục ",
             description = "Api Lấy danh sách danh mục ",
-            tags = {"users:cat"},
+            tags = {"USERS:CAT"},
             parameters = {
                     @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
                             schema = @Schema(type = "string")),
@@ -129,7 +129,7 @@ public class CategoryController {
     @Operation(
             summary = "Lấy thông tin chi tiết của danh mục",
             description = "Api Lấy thông tin chi tiết của danh mục",
-            tags = {"users:cat"})
+            tags = {"USERS:CAT"})
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "CATEGORY1000", description = "Lấy thông tin category thành công", content = {@Content(examples = @ExampleObject(value = """
