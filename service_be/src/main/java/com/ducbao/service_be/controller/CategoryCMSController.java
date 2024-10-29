@@ -28,7 +28,7 @@ public class CategoryCMSController {
     @Operation(
             summary = "Lấy thông tin chi tiết của danh mục",
             description = "Api Lấy thông tin chi tiết của danh mục",
-            tags = {"admin"})
+            tags = {"ADMIN:CAT"})
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "CATEGORY1000", description = "Lấy thông tin category thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -56,7 +56,7 @@ public class CategoryCMSController {
     @Operation(
             summary = "Tạo mới 1 bản ghi danh mục",
             description = "Api Tạo mới 1 bản ghi danh mục",
-            tags = {"admin"})
+            tags = {"ADMIN:CAT"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "CATEGORY1000", description = "Tạo mới 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """
@@ -85,7 +85,7 @@ public class CategoryCMSController {
     @Operation(
             summary = "Sửa 1 bản ghi danh mục",
             description = "Sửa 1 bản ghi danh mục",
-            tags = {"admin"})
+            tags = {"ADMIN:CAT"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "CATEGORY1000", description = "Sửa 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """
@@ -113,7 +113,7 @@ public class CategoryCMSController {
     @Operation(
             summary = "Lấy danh sách danh mục ",
             description = "Api Lấy danh sách danh mục ",
-            tags = {"admin"},
+            tags = {"ADMIN:CAT"},
             parameters = {
                     @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
                             schema = @Schema(type = "string")),
@@ -215,7 +215,7 @@ public class CategoryCMSController {
     @Operation(
             summary = "Xóa 1 bản ghi danh mục",
             description = "API xóa 1 bản ghi danh mục",
-            tags = {"admin"})
+            tags = {"ADMIN:CAT"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "CATEGORY1000", description = "Xóa 1 bản ghi danh mục", content = {@Content(examples = @ExampleObject(value = """

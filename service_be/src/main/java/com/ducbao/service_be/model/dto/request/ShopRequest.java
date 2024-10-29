@@ -33,5 +33,10 @@ public class ShopRequest {
     private BigDecimal latitude;
 
     private CategoryEnums categoryEnum;
+
     private String idCategory;
+
+    private String phone;
+
+    private boolean isOwner;
 }

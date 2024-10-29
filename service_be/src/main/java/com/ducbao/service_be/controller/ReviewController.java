@@ -36,7 +36,7 @@ public class ReviewController {
     @Operation(
             summary = "Tạo đánh giá với cửa hàng hoặc dịch vụ của cửa hàng",
             description = "Api tạo đánh giá với cửa hàng hoặc dịch vụ của cửa hàng",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Tạo đánh giá với cửa hàng", content = @Content(examples = @ExampleObject(value = """
@@ -102,7 +102,7 @@ public class ReviewController {
     @Operation(
             summary = "Cập nhật đánh giá với cửa hàng hoặc dịch vụ của cửa hàng",
             description = "Api Cập nhật đánh giá với cửa hàng hoặc dịch vụ của cửa hàng",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Cập nhật đánh giá", content = @Content(examples = @ExampleObject(value = """
@@ -148,7 +148,7 @@ public class ReviewController {
     @Operation(
             summary = "Xóa đánh giá",
             description = "Api Xóa đánh giá",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1004", description = "Xóa đánh giá", content = @Content(examples = @ExampleObject(value = """
@@ -175,7 +175,7 @@ public class ReviewController {
     @Operation(
             summary = "Lấy danh sách đánh giá của cửa hàng",
             description = "Api Lấy danh sách đánh giá của cửa hàng",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Lấy danh sách đánh giá của cửa hàng", content = @Content(examples = @ExampleObject(value = """
@@ -219,7 +219,7 @@ public class ReviewController {
     @Operation(
             summary = "Lấy danh sách đánh giá của dịch vụ",
             description = "Api Lấy danh sách đánh giá của dịch vụ",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Lấy danh sách đánh giá của dịch vụ", content = @Content(examples = @ExampleObject(value = """
@@ -262,7 +262,7 @@ public class ReviewController {
     @Operation(
             summary = "Lấy danh sách đánh giá theo tài khoản",
             description = "Api Lấy danh sách đánh giá theo tài khoản",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Lấy danh sách đánh giá theo tài khoản", content = @Content(examples = @ExampleObject(value = """
@@ -305,7 +305,7 @@ public class ReviewController {
     @Operation(
             summary = "Lấy danh sách đánh giá gần đây",
             description = "Api Lấy  danh sách đánh giá gần đây",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Lấy  danh sách đánh giá gần đây", content = @Content(examples = @ExampleObject(value = """
@@ -347,7 +347,7 @@ public class ReviewController {
     @Operation(
             summary = "Cập nhật cảm xúc của đánh giá ",
             description = "Api Cập nhật cảm xúc của đánh giá ",
-            tags = {"users:reviews"}
+            tags = {"USERS:REVIEWS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "REVIEW1000", description = "Cập nhật cảm xúc của đánh giá ", content = @Content(examples = @ExampleObject(value = """

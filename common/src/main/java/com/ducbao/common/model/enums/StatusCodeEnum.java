@@ -40,8 +40,10 @@ public enum StatusCodeEnum {
     SHOP1000("SHOP1000"), // Save shop successfully
     SHOP1001("SHOP1001"), // Save shop not successfully
     SHOP1002("SHOP1002"), // Upload image successfully
-    SHOP1003("1003"), // Not found shop
-    SHOP1004("1004"), // Get by id success
+    SHOP1003("SHOP1003"), // Not found shop
+    SHOP1004("SHOP1004"), // Get by id success
+    SHOP1005("SHOP1005"), // update open time successfully
+    SHOP1006("SHOP1006"), // get list open time successfully
 
 
     // SERVICE

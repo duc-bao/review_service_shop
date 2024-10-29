@@ -1,8 +1,10 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.OpenTimeRequest;
 import com.ducbao.service_be.model.dto.request.ServiceRequest;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
+import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
 import com.ducbao.service_be.model.dto.response.ServiceResponse;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
@@ -18,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/own/shop")
@@ -29,7 +33,7 @@ public class ShopOwnerController {
     @Operation(
             summary = "Cập nhật cửa hàng",
             description = "Api cập nhật cửa hàng",
-            tags = {"own"}
+            tags = {"OWNER:SHOPS"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "SHOP1000", description = "Cập nhật cửa hàng thành công", content = @Content(examples = @ExampleObject(value = """
@@ -66,7 +70,7 @@ public class ShopOwnerController {
     @Operation(
             summary = "Lấy thông tin cửa hàng với id",
             description = "Api Lấy thông tin cửa hàng với id ",
-            tags = {"own"})
+            tags = {"OWNER:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
@@ -104,7 +108,7 @@ public class ShopOwnerController {
     @Operation(
             summary = "Tạo dịch vụ với từng cửa hàng",
             description = "Api Tạo dịch vụ với từng cửa hàng ",
-            tags = {"own"})
+            tags = {"OWNER:SERVICE"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Tạo dịch vụ với từng cửa hàng", content = {@Content(examples = @ExampleObject(value = """
@@ -148,9 +152,47 @@ public class ShopOwnerController {
     }
 
     @Operation(
+            summary = "Cập nhật thời gian của cửa hàng",
+            description = "Api Cập nhật thời gian của cửa hàng",
+            tags = {"OWNER:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1005", description = "Cập nhật thời gian của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Cập nhật thời gian hoạt động của cửa hàng thành công",
+                          "data": [
+                              {
+                                                    "id": "6718c19c43333b7137e625f7",
+                                                    "dayOfWeekEnum": "MONDAY",
+                                                    "openTime": "10.00",
+                                                    "closeTime": "18.00",
+                                                    "dayOff": true
+                                                  },
+                                                  {
+                                                    "id": "d2ff64e4-d088-47f1-8de3-c213051979d0",
+                                                    "dayOfWeekEnum": "TUESDAY",
+                                                    "openTime": "6.00",
+                                                    "closeTime": "17.00",
+                                                    "dayOff": false
+                                                  }
+                          ],
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                          statusCode: "SHOP1005"
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/update-open-time/{id}")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests,@PathVariable("id") String id) {
+        return shopService.updateOpenTime(openTimeRequests,id);
+    }
+    @Operation(
             summary = "Cập nhật dịch vụ với từng cửa hàng",
             description = "Api Cập nhật dịch vụ với từng cửa hàng ",
-            tags = {"own"})
+            tags = {"OWNER:SERVICE"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Cập nhật dịch vụ với từng cửa hàng", content = {@Content(examples = @ExampleObject(value = """
@@ -190,7 +232,7 @@ public class ShopOwnerController {
     @Operation(
             summary = "Xóa dịch vụ của cửa hàng đó",
             description = "Api xóa dịch vụ với cửa hàng đó",
-            tags = {"own"})
+            tags = {"OWNER:SERVICE"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Xóa dịch vụ của cửa hàng đó", content = {@Content(examples = @ExampleObject(value = """
@@ -236,7 +278,7 @@ public class ShopOwnerController {
     @Operation(
             summary = "Lấy dịch vụ của cửa hàng theo id",
             description = "Api Lấy dịch vụ của cửa hàng theo id",
-            tags = {"own"})
+            tags = {"OWNER:SERVICE"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Lấy dịch vụ của cửa hàng theo id", content = {@Content(examples = @ExampleObject(value = """
@@ -277,5 +319,47 @@ public class ShopOwnerController {
     @GetMapping("/service/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
         return shopService.getServiceById(id);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách thời gian của cửa hàng",
+            description = "Api Lấy danh sách thời gian của cửa hàng",
+            tags = {"OWNER:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách thời gian của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách thời gian của cửa hàng thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/get-open-time/{id}")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
+        return shopService.getListOpenTime(id);
     }
 }

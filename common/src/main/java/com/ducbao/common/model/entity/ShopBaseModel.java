@@ -60,4 +60,8 @@ public class ShopBaseModel extends BaseModel {
     private int countReview;
 
     private double point;
+
+    private boolean isOwner;
+
+    private String phone;
 }

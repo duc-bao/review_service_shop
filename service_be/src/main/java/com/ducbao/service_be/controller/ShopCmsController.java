@@ -1,6 +1,7 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
 import com.ducbao.service_be.model.dto.response.ServiceResponse;
 import com.ducbao.service_be.model.dto.response.ShopGetResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/cms/shops")
 @RolesAllowed(value = "ADMIN")
@@ -27,7 +30,7 @@ public class ShopCmsController {
     @Operation(
             summary = "Kích hoạt cửa hàng",
             description = "Api Kích hoạt cửa hàng ",
-            tags = {"admin"})
+            tags = {"ADMIN:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Kích hoạt cửa hàng thành công", content = {@Content(examples = @ExampleObject(value = """
@@ -66,7 +69,7 @@ public class ShopCmsController {
     @Operation(
             summary = "Lấy thông tin cửa hàng với id",
             description = "Api Lấy thông tin cửa hàng với id ",
-            tags = {"admin"})
+            tags = {"ADMIN:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
@@ -105,7 +108,7 @@ public class ShopCmsController {
     @Operation(
             summary = "Lấy dịch vụ của cửa hàng theo id",
             description = "Api Lấy dịch vụ của cửa hàng theo id",
-            tags = {"admin"})
+            tags = {"ADMIN:SHOPS"})
     @ApiResponses({
             @ApiResponse(
                     responseCode = "SERVICE1000", description = "Lấy dịch vụ của cửa hàng theo id", content = {@Content(examples = @ExampleObject(value = """
@@ -146,5 +149,47 @@ public class ShopCmsController {
     @GetMapping("/service/{id}")
     public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
         return shopService.getServiceById(id);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách thời gian của cửa hàng",
+            description = "Api Lấy danh sách thời gian của cửa hàng",
+            tags = {"ADMIN:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách thời gian của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách thời gian của cửa hàng thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/get-open-time/{id}")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
+        return shopService.getListOpenTime(id);
     }
 }

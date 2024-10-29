@@ -28,7 +28,7 @@ public class AuthenticationController {
     @Operation(
             summary = "Đăng nhập với tài khoản và mật khẩu",
             description = "Api đăng nhập tài khoản và mật khẩu",
-            tags = {"auth"}
+            tags = {"Auth"}
     )
     @ApiResponses(
             {
@@ -78,7 +78,7 @@ public class AuthenticationController {
     @Operation(
             summary = "Đăng kí tài khoản",
             description = "Api đăng kí tài khoản",
-            tags = {"auth"}
+            tags = {"Auth"}
     )
     @ApiResponses(
             {
@@ -118,7 +118,7 @@ public class AuthenticationController {
     @Operation(
             summary = "Kích hoạt tài khoản",
             description = "Api kích hoạt tài khoản",
-            tags = {"auth"}
+            tags = {"Auth"}
     )
     @ApiResponses(
             {
@@ -163,7 +163,7 @@ public class AuthenticationController {
     @Operation(
             summary = "Kiểm tra xem email tồn tại hay chưa",
             description = "Api Kiểm tra xem email tồn tại hay chưa",
-            tags = {"auth"}
+            tags = {"Auth"}
     )
     @ApiResponses(
             {
@@ -204,7 +204,7 @@ public class AuthenticationController {
     @Operation(
             summary = "Kiểm tra xem username tồn tại hay chưa",
             description = "Api Kiểm tra xem username tồn tại hay chưa",
-            tags = {"auth"}
+            tags = {"Auth"}
     )
     @ApiResponses(
             {
