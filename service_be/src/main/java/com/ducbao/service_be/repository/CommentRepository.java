@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommentRepository extends MongoRepository<CommentModel, String> {
+    CommentModel findByIdReview(String idReview);
 }
