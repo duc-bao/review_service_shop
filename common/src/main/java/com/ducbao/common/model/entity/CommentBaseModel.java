@@ -18,4 +18,8 @@ public class CommentBaseModel extends BaseModel{
     private String idReview;
 
     private String idUser;
+
+    private String idShop;
+
+    private boolean isComment;
 }

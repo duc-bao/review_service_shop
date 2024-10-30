@@ -71,6 +71,12 @@ public enum StatusCodeEnum {
     REVIEW1002("REVIEW1002"), // Exists shop
     REVIEW1003("REVIEW1003"), // Not found review
     REVIEW1004("REVIEW1004"), // Delete review successfully
+
+    // Comment
+    COMMENT("COMMENT"), // Comment
+    COMMENT1000("COMMENT1000"), // save comment successfully
+    COMMENT1001("COMMENT1001"), // Save comment not successfully
+    COMMENT1002("COMMENT1002"), // Not found comment
     ;
     public final String value;
 
