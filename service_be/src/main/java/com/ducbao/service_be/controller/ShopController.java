@@ -94,7 +94,7 @@ public class ShopController {
             ),
     })
     @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<String>> uploadImageShop(MultipartFile file) {
+    public ResponseEntity<ResponseDto<String>> uploadImageShop(@RequestParam("file") MultipartFile file) {
         return shopService.uploadImagme(file);
     }
 
@@ -115,7 +115,7 @@ public class ShopController {
             ),
     })
     @PutMapping(value = "upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(MultipartFile[] files) {
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestParam("files") MultipartFile[] files) {
         return shopService.uploadMultiFile(files);
     }
 
