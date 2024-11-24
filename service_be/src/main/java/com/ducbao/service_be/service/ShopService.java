@@ -53,6 +53,13 @@ public class ShopService {
                     StatusCodeEnum.USER1002
             );
         }
+        ShopModel shopModel1 = shopRepository.findByIdUser(idUser);
+        if (shopModel1 != null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Tài khoản này đã tạo 1 cửa hàng rồi bạn không được phép tạo thêm cửa hàng",
+                    StatusCodeEnum.USER1002
+            );
+        }
 
         ShopModel shopModel = mapper.map(shopRequest, ShopModel.class);
         shopModel.setIdUser(userModel.getId());

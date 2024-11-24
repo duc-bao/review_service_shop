@@ -28,6 +28,7 @@ services:
     command: redis-server --appendonly yes --requirepass 2904 # Đặt mật khẩu cho Redis và bật tính năng ghi dữ liệu
     networks:
       - my_network
+
 networks:
   my_network:
     driver: bridge
