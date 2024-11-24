@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -75,15 +74,15 @@ public class ShopController {
 
 
     @Operation(
-            summary = "Tải nhiều ảnh của cửa hàng lên hệ thống",
-            description = "Api tải nhiều ảnh của cửa hàng lên hệ thống",
+            summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
+            description = "Api tải ảnh của cửa hàng lên hệ thống",
             tags = {"USERS:SHOPS"}
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "SHOP1002", description = "Tải nhiều ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
                      {
                     	"success": true,
-                    	"message": "Tải nhiều ảnh cửa hàng lên thành công",
+                    	"message": "Tải ảnh cửa hàng lên thành công",
                     	"data": [
                                      "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
                                      "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
@@ -99,15 +98,15 @@ public class ShopController {
     }
 
     @Operation(
-            summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
-            description = "Api tải ảnh của cửa hàng lên hệ thống",
+            summary = "Tải nhiều ảnh của cửa hàng lên hệ thống",
+            description = "Api tải nhiều ảnh của cửa hàng lên hệ thống",
             tags = {"USERS:SHOPS"}
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "SHOP1002", description = "Tải nhiều ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
                      {
                     	"success": true,
-                    	"message": "Tải ảnh cửa hàng lên thành công",
+                    	"message": "Tải nhiều ảnh cửa hàng lên thành công",
                     	"data": "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
                     	"statusCode": "SHOP1002"
                     }
@@ -115,7 +114,7 @@ public class ShopController {
             ),
     })
     @PutMapping(value = "upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestParam("files") MultipartFile[] files) {
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestPart("files") MultipartFile[] files) {
         return shopService.uploadMultiFile(files);
     }
 
