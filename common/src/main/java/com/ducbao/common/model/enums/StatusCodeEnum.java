@@ -77,6 +77,12 @@ public enum StatusCodeEnum {
     COMMENT1000("COMMENT1000"), // save comment successfully
     COMMENT1001("COMMENT1001"), // Save comment not successfully
     COMMENT1002("COMMENT1002"), // Not found comment
+
+    // Favorite
+    FAVORITE("FAVORITE"),
+    FAVORITE1000("FAVORITE1000"), // Save favorite successfully
+    FAVORITE1001("FAVORITE1001"), // Can not save favorite
+    FAVORITE1002("FAVORITE1002"), // not found favorite
     ;
     public final String value;
 
