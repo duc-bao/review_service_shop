@@ -33,3 +33,4 @@ build/
 .vscode/
 mongodb/
 redis-data/
+elasticsearch-data/

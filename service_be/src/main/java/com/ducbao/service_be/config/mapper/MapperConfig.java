@@ -12,6 +12,7 @@ public class MapperConfig {
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+//        modelMapper.addMappings(new UserModelToShopModel(userRepository))
         return modelMapper;
     }
 
