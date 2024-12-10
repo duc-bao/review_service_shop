@@ -516,6 +516,32 @@ public class ShopService {
         );
     }
 
+    public ResponseEntity<ResponseDto<ShopResponse>> blockShop(String idShop) {
+        ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        shopModel.setVery(false);
+        shopModel.setStatusShopEnums(StatusShopEnums.DEACTIVE);
+        try {
+            shopModel = shopRepository.save(shopModel);
+            return ResponseBuilder.okResponse(
+                    "Khóa cửa hàng thành công",
+                    mapper.map(shopModel, ShopResponse.class),
+                    StatusCodeEnum.SHOP1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Xảy ra lỗi khi lưu cửa hàng",
+                    StatusCodeEnum.SHOP1001
+            );
+        }
+    }
+
     public ResponseEntity<ResponseDto<Double>> getPointReview(String idShop) {
         ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
         if (shopModel == null) {

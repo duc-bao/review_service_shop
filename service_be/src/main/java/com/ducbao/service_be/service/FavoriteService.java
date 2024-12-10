@@ -7,6 +7,7 @@ import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.dto.request.FavoriteRequest;
 import com.ducbao.service_be.model.dto.response.FavoriteResponse;
 import com.ducbao.service_be.model.entity.FavoriteModel;
+import com.ducbao.service_be.model.entity.ShopModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.FavoriteRepository;
 import com.ducbao.service_be.repository.ShopRepository;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +38,7 @@ public class FavoriteService {
 
     public ResponseEntity<ResponseDto<FavoriteResponse>> addFavorite(FavoriteRequest favoriteRequest) {
         String idUser = userService.userId();
-        if(favoriteRepository.existsByIdUserAndIdShop(idUser, favoriteRequest.getIdShop())) {
+        if (favoriteRepository.existsByIdUserAndIdShop(idUser, favoriteRequest.getIdShop())) {
             FavoriteModel favoriteModel = favoriteRepository.findByIdUserAndIdShop(idUser, favoriteRequest.getIdShop());
             return ResponseBuilder.okResponse(
                     "Đã tồn tại yêu thích cửa hàng này",
@@ -55,7 +57,7 @@ public class FavoriteService {
                     mapper.map(favoriteModel, FavoriteResponse.class),
                     StatusCodeEnum.FAVORITE1000
             );
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseBuilder.badRequestResponse(
                     "Thêm yêu thích thất bại",
@@ -66,7 +68,7 @@ public class FavoriteService {
 
     public ResponseEntity<ResponseDto<FavoriteResponse>> getFavoriteById(String id) {
         FavoriteModel favoriteModel = favoriteRepository.findById(id).orElse(null);
-        if(favoriteModel == null) {
+        if (favoriteModel == null) {
             return ResponseBuilder.okResponse(
                     "Không tìm thấy cửa hàng yêu thích",
                     StatusCodeEnum.FAVORITE1002
@@ -82,13 +84,23 @@ public class FavoriteService {
     public ResponseEntity<ResponseDto<List<FavoriteResponse>>> getListFavorite(String s, int limit, int page) {
         String idUser = userService.userId();
         Sort sort = Sort.by(Sort.Direction.DESC, s);
-        Pageable pageable = PageRequest.of(page -1, limit, sort);
+        Pageable pageable = PageRequest.of(page - 1, limit, sort);
 
         Page<FavoriteModel> favoriteModels = favoriteRepository.findAllByIdUser(idUser, pageable);
         List<FavoriteModel> favoriteModelList = favoriteModels.getContent();
         List<FavoriteResponse> favoriteResponseList = favoriteModelList.stream().map(
-                favoriteModel -> mapper.map(favoriteModel, FavoriteResponse.class)
-        ).collect(Collectors.toList());
+                favoriteModel -> {
+                    return shopRepository.findById(favoriteModel.getIdShop())
+                            .filter(ShopModel::isVery)
+                            .map(shopModel -> {
+                                FavoriteResponse favoriteModel1 = FavoriteResponse.builder()
+                                        .idShop(shopModel.getId())
+                                        .idUser(idUser)
+                                        .build();
+                                return favoriteModel1;
+                            }).orElse(null);
+                }
+        ).filter(Objects::nonNull).collect(Collectors.toList());
 
         MetaData metaData = MetaData.builder()
                 .currentPage(page)
@@ -107,7 +119,7 @@ public class FavoriteService {
 
     public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(String id) {
         FavoriteModel favoriteModel = favoriteRepository.findById(id).orElse(null);
-        if(favoriteModel == null) {
+        if (favoriteModel == null) {
             return ResponseBuilder.okResponse(
                     "Không tìm thấy cửa hàng yêu thích",
                     StatusCodeEnum.FAVORITE1002
@@ -120,7 +132,7 @@ public class FavoriteService {
                     mapper.map(favoriteModel, FavoriteResponse.class),
                     StatusCodeEnum.FAVORITE1000
             );
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseBuilder.badRequestResponse(
                     "Không thể xóa cửa hàng yêu thích",

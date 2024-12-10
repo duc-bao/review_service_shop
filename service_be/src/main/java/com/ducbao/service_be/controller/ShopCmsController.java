@@ -192,4 +192,46 @@ public class ShopCmsController {
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
         return shopService.getListOpenTime(id);
     }
+
+    @Operation(
+            summary = "Khóa cửa hàng này",
+            description = "Api Khóa cửa hàng này",
+            tags = {"ADMIN:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Khóa cửa hàng này", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Khóa cửa hàng thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/block-shop/{id}")
+    public ResponseEntity<ResponseDto<ShopResponse>> blockShop(@PathVariable("id") String id){
+        return shopService.blockShop(id);
+    }
 }
