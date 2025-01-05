@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.CategoryRequest;
+import com.ducbao.service_be.model.dto.request.CategoryTagsRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +27,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/cms/categories")
 @RolesAllowed(value = "ADMIN")
+@Slf4j
 public class CategoryCMSController {
+    private static final Logger log = LoggerFactory.getLogger(CategoryCMSController.class);
     private final CategoryService categoryService;
 
     @Operation(
@@ -238,5 +245,35 @@ public class CategoryCMSController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategoryById(@PathVariable String id){
         return categoryService.deleteCategory(id);
+    }
+
+    @Operation(
+            summary = "Cập nhật tags cho danh mục cha",
+            description = "API Cập nhật tags cho danh mục cha",
+            tags = {"ADMIN:CAT"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "CATEGORY1000", description = "Cập nhật tags cho danh mục cha", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Thêm mới thẻ cho category thành công",
+                          "data": {
+                                 "id": "6710dd81562f193049ca9929",
+                                 "name": "Nhà hàng",
+                                 "type": "RESTAURANT",
+                                 "parentId": "6710dd81562f193049ca9",
+                                 "description": "Nhà Hàng siêu ngon",
+                                 "tags": "Chay, mặn"
+                                 "delete": true
+                          },
+                          statusCode: "CATEGORY1000"
+                      }
+                    """))}
+            ),
+    })
+    @PutMapping("/add-tags")
+    public ResponseEntity<ResponseDto<CategoryResponse>> addTags(@RequestBody @Valid CategoryTagsRequest categoryTagsRequest){
+        log.info("add tags request: {}", categoryTagsRequest);
+        return categoryService.addTags(categoryTagsRequest);
     }
 }

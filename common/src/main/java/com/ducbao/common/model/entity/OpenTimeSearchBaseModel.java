@@ -1,11 +1,13 @@
 package com.ducbao.common.model.entity;
 
 import com.ducbao.common.model.enums.DayOfWeekEnums;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Data
+@Builder
 public class OpenTimeSearchBaseModel {
     @Field(type = FieldType.Keyword)
     private String id;

@@ -2,13 +2,12 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
+import com.ducbao.service_be.model.dto.request.ShopSearchRequest;
 import com.ducbao.service_be.model.dto.request.VerifyShopRequest;
-import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
-import com.ducbao.service_be.model.dto.response.ServiceResponse;
-import com.ducbao.service_be.model.dto.response.ShopGetResponse;
-import com.ducbao.service_be.model.dto.response.ShopResponse;
+import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.service.FileService;
 import com.ducbao.service_be.service.ShopService;
+import com.ducbao.service_be.service.elk.ShopSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,10 +16,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +33,47 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopController {
     private final ShopService shopService;
+    private final ShopSearchService shopSearchService;
+
+
+    @Operation(
+            summary = "Tìm kiếm danh sách cửa hàng",
+            description = "Api Tìm kiếm danh sách cửa hàng",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Tìm kiếm danh sách cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Tìm kiếm cửa hàng thành công",
+                          "data": {
+                                 "id": "670d0668c50bc3586429fdc1",
+                                 "name": "Nhà hàng của Bảo",
+                                 "avatar": "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+                                 "email": "truongducbao2904@gmail.com",
+                                 "mediaUrls": [
+                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
+                                 ],
+                                 "description": "Nhà hàng món ăn hàng đầu về chất lượng",
+                                 "urlWebsite": "https://quannhautudo.com/bai-viet/quan-nhau-chill-ha-noi-163.htm",
+                                 "statusShopEnums": "DEACTIVE",
+                                 "very": false,
+                                 "listIdOpenTime": [
+                                       "670d04f24e531645e73f8984",
+                                       "670d04f24e531645e73f8985",
+                                       "670d04f24e531645e73f8986"
+                                 ],
+                          },
+                          statusCode: "SHOP1000"
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/search")
+    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> searchShops(@Valid @RequestBody ShopSearchRequest shopSearchRequest) {
+        return shopSearchService.searchShopService(shopSearchRequest);
+    }
 
     @Operation(
             summary = "Tạo cửa hàng với người dùng",
@@ -68,6 +110,7 @@ public class ShopController {
             ),
     })
     @PostMapping("/create-shop")
+//    @PreAuthorize("hasAuthority('OWNER')")
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(@RequestBody ShopRequest shopRequest) {
         return shopService.createShop(shopRequest);
     }
@@ -450,4 +493,7 @@ public class ShopController {
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
         return shopService.getListOpenTime(id);
     }
+
+
+
 }

@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ServiceRepository extends MongoRepository<ServiceModel, String> {
     ServiceModel findByIdAndIsDelete(String id, boolean isDelete);
@@ -13,4 +15,5 @@ public interface ServiceRepository extends MongoRepository<ServiceModel, String>
     Page<ServiceModel> findByNameContainingAndIsDelete(String n,boolean isDelete ,Pageable pageable);
     Page<ServiceModel> findByTypeAndIsDelete(String t, boolean isDelete, Pageable pageable);
     Page<ServiceModel> findAllByIsDelete(boolean isDelete, Pageable pageable);
+    List<ServiceModel> findAllByIdShop(String idShop);
 }
