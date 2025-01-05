@@ -51,7 +51,7 @@ services:
     container_name: kibana-review
     image: kibana:8.14.3
     ports:
-      - 5601:5601
+      - 5602:5601
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:

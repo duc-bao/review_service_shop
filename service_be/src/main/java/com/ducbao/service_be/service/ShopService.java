@@ -4,10 +4,11 @@ import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.constant.FileConstant;
 import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.common.model.entity.OpenTimeBaseModel;
+import com.ducbao.common.model.entity.*;
 import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.model.enums.StatusShopEnums;
+import com.ducbao.common.model.enums.StatusUserEnums;
 import com.ducbao.common.util.Util;
 import com.ducbao.service_be.model.constant.AppConstants;
 import com.ducbao.service_be.model.dto.request.*;
@@ -15,6 +16,7 @@ import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.model.entity.*;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -22,10 +24,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,10 +50,14 @@ public class ShopService {
     private final EmailService emailService;
     private final ServiceRepository serviceRepository;
     private final ReviewRepository reviewRepository;
+    private final CategoryRepository categoryRepository;
+    private final ElasticsearchOperations elasticsearchOperations;
+
+
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
-        String idUser = userService.userId();
-        UserModel userModel = userRepository.findById(idUser).orElse(null);
+//        String idUser = userService.userId();
+        UserModel userModel = userRepository.findByEmail(shopRequest.getEmail()).orElse(null);
 
         if (userModel == null) {
             return ResponseBuilder.badRequestResponse(
@@ -53,7 +65,7 @@ public class ShopService {
                     StatusCodeEnum.USER1002
             );
         }
-        ShopModel shopModel1 = shopRepository.findByIdUser(idUser);
+        ShopModel shopModel1 = shopRepository.findByIdUser(userModel.getId());
         if (shopModel1 != null) {
             return ResponseBuilder.badRequestResponse(
                     "Tài khoản này đã tạo 1 cửa hàng rồi bạn không được phép tạo thêm cửa hàng",
@@ -65,11 +77,13 @@ public class ShopService {
         shopModel.setIdUser(userModel.getId());
         shopModel.setStatusShopEnums(StatusShopEnums.DEACTIVE);
 
-        List<OpenTimeModel> openTimeBaseModelList = shopRequest.getOpenTimeRequests().stream().map(
-                openTimeRequest -> mapper.map(openTimeRequest, OpenTimeModel.class)).collect(Collectors.toList());
-        openTimeBaseModelList = openTimeRepository.saveAll(openTimeBaseModelList);
-        log.info(openTimeBaseModelList.toString());
-        shopModel.setListIdOpenTime(openTimeBaseModelList.stream().map(OpenTimeBaseModel::getId).collect(Collectors.toList()));
+        if(!shopRequest.getOpenTimeRequests().isEmpty()) {
+            List<OpenTimeModel> openTimeBaseModelList = shopRequest.getOpenTimeRequests().stream().map(
+                    openTimeRequest -> mapper.map(openTimeRequest, OpenTimeModel.class)).collect(Collectors.toList());
+            openTimeBaseModelList = openTimeRepository.saveAll(openTimeBaseModelList);
+            log.info(openTimeBaseModelList.toString());
+            shopModel.setListIdOpenTime(openTimeBaseModelList.stream().map(OpenTimeBaseModel::getId).collect(Collectors.toList()));
+        }
         try {
             shopModel = shopRepository.save(shopModel);
             return ResponseBuilder.okResponse(
@@ -219,18 +233,21 @@ public class ShopService {
                     StatusCodeEnum.USER1002
             );
         }
-        if (!shopModel.isOwner()) {
-            shopModel.setStatusShopEnums(StatusShopEnums.ACTIVE);
-            shopModel = shopRepository.save(shopModel);
-            return ResponseBuilder.okResponse("Kích hoạt cửa hàng thành công với người tạo cửa hàng là ẩn danh",
-                    mapper.map(shopModel, ShopResponse.class),
-                    StatusCodeEnum.SHOP1000);
-        }
+//        if (!shopModel.isOwner()) {
+//            shopModel.setStatusShopEnums(StatusShopEnums.ACTIVE);
+//            shopModel = shopRepository.save(shopModel);
+//            return ResponseBuilder.okResponse("Kích hoạt cửa hàng thành công với người tạo cửa hàng là ẩn danh",
+//                    mapper.map(shopModel, ShopResponse.class),
+//                    StatusCodeEnum.SHOP1000);
+//        }
+//        userModel.setRole(List.of("OWNER"));
+        userModel.setStatusUserEnums(StatusUserEnums.ACTIVE);
         userModel.setRole(List.of("OWNER"));
         shopModel.setStatusShopEnums(StatusShopEnums.ACTIVE);
         shopModel.setVery(true);
 
         try {
+            userRepository.save(userModel);
             shopModel = shopRepository.save(shopModel);
             EmailRequest emailRequest = EmailRequest.builder()
                     .channel("email")

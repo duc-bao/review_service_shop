@@ -12,6 +12,8 @@ public class ShopRequest {
 
     private String avatar;
 
+    private String imageBusiness;
+
     private String email;
 
     private List<String> mediaUrls;

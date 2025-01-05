@@ -5,7 +5,9 @@ import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.util.Util;
+import com.ducbao.service_be.model.dto.request.CategoryForUserRequest;
 import com.ducbao.service_be.model.dto.request.CategoryRequest;
+import com.ducbao.service_be.model.dto.request.CategoryTagsRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.model.entity.CategoryModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
@@ -22,7 +24,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,15 +40,15 @@ public class CategoryService {
 
     public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(CategoryRequest categoryRequest) {
         CategoryModel categoryModel = mapper.map(categoryRequest, CategoryModel.class);
-        if(categoryModel.getParentId() != null){
+        if (categoryModel.getParentId() != null) {
             CategoryModel parent = categoryRepository.findById(categoryModel.getParentId()).orElse(null);
-            if(parent == null){
+            if (parent == null) {
                 return ResponseBuilder.badRequestResponse(
                         "Không tìm thấy thể loại cha",
                         StatusCodeEnum.CATEGORY1002
                 );
             }
-            if(!parent.getType().equals(categoryModel.getType())){
+            if (!parent.getType().equals(categoryModel.getType())) {
                 return ResponseBuilder.badRequestResponse(
                         "Không đúng thể loại cha",
                         StatusCodeEnum.CATEGORY1002
@@ -59,7 +63,7 @@ public class CategoryService {
                     mapper.map(categoryModel, CategoryResponse.class),
                     StatusCodeEnum.CATEGORY1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lỗi khi lưu thể loại",
                     StatusCodeEnum.CATEGORY1001
@@ -69,15 +73,15 @@ public class CategoryService {
 
     public ResponseEntity<ResponseDto<CategoryResponse>> updateCategory(CategoryRequest categoryRequest, String id) {
         CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
-        if(categoryModel.getParentId() != null){
+        if (categoryModel.getParentId() != null) {
             CategoryModel parent = categoryRepository.findById(categoryModel.getParentId()).orElse(null);
-            if(parent == null){
+            if (parent == null) {
                 return ResponseBuilder.badRequestResponse(
                         "Không tìm thấy thể loại cha",
                         StatusCodeEnum.CATEGORY1002
                 );
             }
-            if(!parent.getType().equals(categoryModel.getType())){
+            if (!parent.getType().equals(categoryModel.getType())) {
                 return ResponseBuilder.badRequestResponse(
                         "Không đúng thể loại cha",
                         StatusCodeEnum.CATEGORY1002
@@ -93,7 +97,7 @@ public class CategoryService {
                     mapper.map(categoryModel, CategoryResponse.class),
                     StatusCodeEnum.CATEGORY1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lỗi khi lưu thể loại",
                     StatusCodeEnum.CATEGORY1001
@@ -101,9 +105,51 @@ public class CategoryService {
         }
     }
 
+    public ResponseEntity<ResponseDto<CategoryResponse>> addTags(CategoryTagsRequest request) {
+        CategoryModel categoryModel = categoryRepository.findById(request.getIdCategory()).orElse(null);
+        if (categoryModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy thể loại",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        if (categoryModel.getParentId() != null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể tạo thẻ cho thể loại này",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+        Set<String> currentTags = categoryModel.getTags();
+        if (currentTags == null) {
+            currentTags = new HashSet<>();
+        }
+
+        if (request.isDelete()) {
+            currentTags.removeAll(request.getTags());
+        } else {
+            currentTags.addAll(request.getTags());
+        }
+        categoryModel.setTags(currentTags);
+        try {
+            categoryModel = categoryRepository.save(categoryModel);
+            return ResponseBuilder.okResponse(
+                    "Thêm mới thẻ cho category thành công",
+                    mapper.map(categoryModel, CategoryResponse.class),
+                    StatusCodeEnum.CATEGORY1000
+            );
+        } catch (Exception e) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể thêm mới thẻ cho thể loại",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+
+    }
+
     public ResponseEntity<ResponseDto<CategoryResponse>> getById(String id) {
         CategoryModel categoryModel = categoryRepository.findByIdAndIsDelete(id, false);
-        if(categoryModel == null){
+        if (categoryModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy thể loại cha",
                     StatusCodeEnum.CATEGORY1002
@@ -118,16 +164,15 @@ public class CategoryService {
     }
 
     /**
-    * Lấy danh sách thể loại với chỉ thằng thể loại gốc
-     *
-    * */
+     * Lấy danh sách thể loại với chỉ thằng thể loại gốc
+     */
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAll(String s, String q, String filter, int limit, int page) {
         Sort sort = Sort.by(Sort.Direction.ASC, s);
         Pageable pageable = PageRequest.of(page - 1, limit, sort);
-        if(!Util.isNullOrEmpty(q) && !Util.isNullOrEmpty(filter)){
+        if (!Util.isNullOrEmpty(q) && !Util.isNullOrEmpty(filter)) {
             JSONObject jsonObject = new JSONObject(filter);
-            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndTypeAndIsDelete(q,jsonObject.get("type").toString(), false,pageable);
-            List<CategoryModel>  categoryModels = categoryResponses.getContent();
+            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndTypeAndIsDelete(q, jsonObject.get("type").toString(), false, pageable);
+            List<CategoryModel> categoryModels = categoryResponses.getContent();
 
             List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
                     categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
@@ -148,9 +193,9 @@ public class CategoryService {
             );
         }
 
-        if(!Util.isNullOrEmpty(q)){
-            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndIsDelete(q,false ,pageable);
-            List<CategoryModel>  categoryModels = categoryResponses.getContent();
+        if (!Util.isNullOrEmpty(q)) {
+            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndIsDelete(q, false, pageable);
+            List<CategoryModel> categoryModels = categoryResponses.getContent();
 
             List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
                     categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
@@ -171,11 +216,11 @@ public class CategoryService {
             );
         }
 
-        if(!Util.isNullOrEmpty(filter)){
+        if (!Util.isNullOrEmpty(filter)) {
             JSONObject jsonObject = new JSONObject(filter);
 
-            Page<CategoryModel> categoryResponses = categoryRepository.findByTypeAndIsDelete(jsonObject.get("type").toString(), false,pageable);
-            List<CategoryModel>  categoryModels = categoryResponses.getContent();
+            Page<CategoryModel> categoryResponses = categoryRepository.findByTypeAndIsDelete(jsonObject.get("type").toString(), false, pageable);
+            List<CategoryModel> categoryModels = categoryResponses.getContent();
 
             List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
                     categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
@@ -195,7 +240,7 @@ public class CategoryService {
                     StatusCodeEnum.CATEGORY1005
             );
         }
-        Page<CategoryModel> categoryModels = categoryRepository.findAllByIsDelete(false,pageable);
+        Page<CategoryModel> categoryModels = categoryRepository.findAllByIsDelete(false, pageable);
         List<CategoryModel> categoryModels1 = categoryModels.getContent();
         List<CategoryResponse> categoryResponseList = categoryModels1.stream().map(
                 categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
@@ -215,9 +260,9 @@ public class CategoryService {
         );
     }
 
-    public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategory(String id){
+    public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategory(String id) {
         CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
-        if(categoryModel == null){
+        if (categoryModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy thể loại cha",
                     StatusCodeEnum.CATEGORY1002
@@ -232,7 +277,7 @@ public class CategoryService {
                     mapper.map(categoryModel, CategoryResponse.class),
                     StatusCodeEnum.CATEGORY1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lưu thể loại thất bại",
                     StatusCodeEnum.CATEGORY1001
@@ -240,4 +285,65 @@ public class CategoryService {
         }
     }
 
+    /**
+     * Create category for user
+     */
+    public ResponseEntity<ResponseDto<CategoryResponse>> createCategoryForUser(CategoryForUserRequest categoryRequest) {
+        CategoryModel categoryParent = categoryRepository.findById(categoryRequest.getIdParent()).orElse(null);
+        if (categoryParent == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tồn tại danh mục cha",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+        if (categoryParent.getParentId() != null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Bạn không thể tạo danh mục với id danh mục con",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+        Set<String> tags = categoryRequest.getTags();
+        Set<String> parentTags = categoryParent.getTags().stream().map(
+                String::toLowerCase
+        ).collect(Collectors.toSet());
+
+        boolean valid = tags.stream().map(
+                String::toLowerCase
+        ).allMatch(parentTags::contains);
+
+        if (!valid) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể tạo thể loại với tên như này",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+        String nameCategory = String.join(",", categoryRequest.getTags());
+        CategoryModel categoryModel = CategoryModel.builder()
+                .name(nameCategory)
+                .tags(categoryRequest.getTags())
+                .parentId(categoryRequest.getIdParent())
+                .build();
+
+        try {
+            categoryModel = categoryRepository.save(categoryModel);
+            return ResponseBuilder.okResponse(
+                    "Tạo mới danh mục cho user thành công",
+                    mapper.map(categoryModel, CategoryResponse.class),
+                    StatusCodeEnum.CATEGORY1000
+            );
+        } catch (Exception e) {
+            log.error("CreateCategoryForUser() - {}", e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể tạo mới thể loại",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+    }
+
+    public CategoryModel getCategory(String id) {
+        if (id == null || id.isEmpty()) {
+            return null;
+        }
+        return categoryRepository.findById(id).orElse(null);
+    }
 }

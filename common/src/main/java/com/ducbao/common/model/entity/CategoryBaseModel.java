@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @SuperBuilder
@@ -27,4 +28,6 @@ public class CategoryBaseModel extends BaseModel {
     private String description;
 
     private boolean isDelete;
+
+    private Set<String> tags;
 }

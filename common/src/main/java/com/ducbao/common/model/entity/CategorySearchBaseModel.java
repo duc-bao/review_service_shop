@@ -1,11 +1,15 @@
 package com.ducbao.common.model.entity;
 
 import com.ducbao.common.model.enums.CategoryEnums;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.Set;
+
 @Data
+@Builder
 public class CategorySearchBaseModel {
     @Field(type = FieldType.Keyword)
     private String id;
@@ -24,4 +28,7 @@ public class CategorySearchBaseModel {
 
     @Field(type = FieldType.Keyword)
     private CategoryEnums categoryEnum;
+
+    @Field(type = FieldType.Keyword)
+    private Set<String> tags;
 }

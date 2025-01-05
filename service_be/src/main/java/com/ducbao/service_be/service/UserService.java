@@ -102,7 +102,7 @@ public class UserService {
 
     public ResponseEntity<ResponseDto<UserResponse>> forgotPassword(UserForgotPassword userForgotPassword) {
 
-        UserModel userModel = userRepository.findByEmail(userForgotPassword.getEmail());
+        UserModel userModel = userRepository.findByEmail(userForgotPassword.getEmail()).orElse(null);
         if (userModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Tài khoản không tồn tại",

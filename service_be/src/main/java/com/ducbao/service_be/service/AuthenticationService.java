@@ -126,6 +126,61 @@ public class AuthenticationService {
 
     }
 
+    public ResponseEntity<ResponseDto<Void>> registerWithShop(ResgisterRequest registerRequest) {
+        UserModel userModel = commonMapper.map(registerRequest, UserModel.class);
+        if (userRepository.existsByEmail(userModel.getEmail())) {
+            return ResponseBuilder.badRequestResponse(
+                    "Email đã tồn tại",
+                    StatusCodeEnum.LOGIN1002
+            );
+        }
+
+        if (userRepository.existsByUsername(userModel.getUsername())) {
+            return ResponseBuilder.badRequestResponse(
+                    "Username đã tồn tại",
+                    StatusCodeEnum.LOGIN1003
+            );
+        }
+
+        if (userRepository.existsByPhone(userModel.getPhone())) {
+            return ResponseBuilder.badRequestResponse(
+                    "Số điện thoại đã tồn tại đã tồn tại",
+                    StatusCodeEnum.LOGIN1004
+            );
+        }
+
+        userModel.setActiveCode(activationCode());
+        userModel.setStatusUserEnums(StatusUserEnums.DEACTIVE);
+        String endecodePassword = passwordEncoder.encode(userModel.getPassword());
+        userModel.setPassword(endecodePassword);
+//        userModel.setRole(List.of("OWNER"));
+//        EmailRequest emailRequest = EmailRequest.builder()
+//                .channel("email")
+//                .recipient(userModel.getEmail())
+//                .templateCode("REGISTER")
+//                .param(Map.of("name", userModel.getUsername(),
+//                        "verificationUrl", AppConstants.LINK_ACTIVE_ACCOUNT + userModel.getActiveCode()))
+//                .subject(AppConstants.SUBJECT_REGISTER)
+//                .build();
+        // Sử dụng bất đồng bộ
+
+//        emailService.sendEmail(emailRequest)
+        try {
+            userRepository.save(userModel);
+//            emailService.sendEmail(emailRequest);
+            return ResponseBuilder.badRequestResponse(
+                    "Đăng kí tài khoản thành công vui lòng kiểm tra email để kích hoạt tài khoản",
+                    StatusCodeEnum.USER1000
+            );
+        } catch (Exception e) {
+            return ResponseBuilder.badRequestResponse(
+                    "Lưu người dùng không thành công",
+                    StatusCodeEnum.USER1001
+            );
+        }
+
+
+    }
     public ResponseEntity<ResponseDto<UserInfoResponse>> activeAcount(String code) {
         UserModel userModel = userRepository.findByActiveCode(code);
         if (userModel == null) {

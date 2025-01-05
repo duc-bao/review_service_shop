@@ -76,15 +76,15 @@ public class AuthenticationController {
     }
 
     @Operation(
-            summary = "Đăng kí tài khoản",
-            description = "Api đăng kí tài khoản",
+            summary = "Đăng kí tài khoản với user",
+            description = "Api đăng kí tài khoản với user",
             tags = {"Auth"}
     )
     @ApiResponses(
             {
                     @ApiResponse(
                             responseCode = "USER1000",
-                            description = "Đăng kí tài khoản thành công",
+                            description = "Đăng kí tài khoản thành công với user",
                             content = {@Content(examples = @ExampleObject(value = """
                                     {
                                     "success": true,
@@ -115,6 +115,49 @@ public class AuthenticationController {
         return authenticationService.register(resgisterRequest);
     }
 
+    @Operation(
+            summary = "Đăng kí tài khoản là chủ cửa hàng",
+            description = "Đăng kí tài khoản với chủ cửa hàng",
+            tags = {"Auth"}
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "SHOP1000",
+                            description = "Đăng kí tài khoản là chủ cửa hàng thành công",
+                            content = {
+                                    @Content(examples = @ExampleObject(value = """
+                                             {
+                                            "success": true,
+                                            "message": "Đăng kí tài khoản thành công vui lòng kiểm tra email để kích hoạt tài khoản",
+                                            "data": null,
+                                            "statusCode": "USER1000",
+                                            "meta": null
+                                            }
+                                            """))
+                    }
+                    ),
+                    @ApiResponse(
+                            responseCode = "LOGIN1002",
+                            description = "Email đã tồn tài",
+                            content = {
+                                    @Content(examples = @ExampleObject(value = """
+                                             {
+                                            "success": false,
+                                            "message": "Email đã tồn tại",
+                                            "data": null,
+                                            "statusCode": "LOGIN1002",
+                                            "meta": null
+                                            }
+                                            """))
+                            }
+                    )
+            }
+    )
+    @PostMapping("/register/shop")
+    public ResponseEntity<ResponseDto<Void>> registerShop(@RequestBody ResgisterRequest resgisterRequest) {
+        return authenticationService.registerWithShop(resgisterRequest);
+    }
     @Operation(
             summary = "Kích hoạt tài khoản",
             description = "Api kích hoạt tài khoản",
