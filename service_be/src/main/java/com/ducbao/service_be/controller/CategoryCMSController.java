@@ -1,9 +1,12 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.CategoryCountRequest;
+import com.ducbao.service_be.model.dto.request.CategoryDeleteTagRequest;
 import com.ducbao.service_be.model.dto.request.CategoryRequest;
 import com.ducbao.service_be.model.dto.request.CategoryTagsRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
+import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -273,7 +276,61 @@ public class CategoryCMSController {
     })
     @PutMapping("/add-tags")
     public ResponseEntity<ResponseDto<CategoryResponse>> addTags(@RequestBody @Valid CategoryTagsRequest categoryTagsRequest){
-        log.info("add tags request: {}", categoryTagsRequest);
+        log.info("addTags: {}", categoryTagsRequest);
         return categoryService.addTags(categoryTagsRequest);
+    }
+
+    @Operation(
+            summary = "Xóa tag cho danh mục cha",
+            description = "API xóa tag cho danh mục cha",
+            tags = {"ADMIN:CAT"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "CATEGORY1000", description = "API xóa tag cho danh mục cha", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Xóa tag cho danh mục cha thành công",
+                          "data": {
+                                 "id": "6710dd81562f193049ca9929",
+                                 "name": "Nhà hàng",
+                                 "type": "RESTAURANT",
+                                 "parentId": "6710dd81562f193049ca9",
+                                 "description": "Nhà Hàng siêu ngon",
+                                 "tags": "Chay, mặn"
+                                 "delete": true
+                          },
+                          statusCode: "CATEGORY1000"
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/delete-tags")
+    public ResponseEntity<ResponseDto<CategoryResponse>> deleteTags(@RequestBody @Valid CategoryDeleteTagRequest categoryTagsRequest){
+        log.info("deleteTags: {}", categoryTagsRequest);
+        return categoryService.deleteTag(categoryTagsRequest);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách tag cho danh mục",
+            description = "API Lấy danh sách tag cho danh mục",
+            tags = {"ADMIN:CAT"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "CATEGORY1000", description = "API Lấy danh sách tag cho danh mục", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách tag cho danh mục thành công",
+                          "data": {
+                               "chay, mặn"
+                          },
+                          statusCode: "CATEGORY1000"
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/list-tags/{id}")
+    public ResponseEntity<ResponseDto<List<String>>> getAllTags(@PathVariable String id){
+        log.info("getAllTags: {}", id);
+        return categoryService.getListTag(id);
     }
 }

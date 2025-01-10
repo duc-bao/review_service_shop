@@ -5,10 +5,9 @@ import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.util.Util;
-import com.ducbao.service_be.model.dto.request.CategoryForUserRequest;
-import com.ducbao.service_be.model.dto.request.CategoryRequest;
-import com.ducbao.service_be.model.dto.request.CategoryTagsRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
+import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.entity.CategoryModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.CategoryRepository;
@@ -146,6 +145,68 @@ public class CategoryService {
         }
 
     }
+
+    public ResponseEntity<ResponseDto<List<String>>> getListTag(String idCategory){
+        CategoryModel categoryModel = categoryRepository.findById(idCategory).orElse(null);
+        if (categoryModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy danh mục",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        if(categoryModel.getParentId() != null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể lấy danh sách tag list",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        List<String> tags = categoryModel.getTags().stream().toList();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách tag thành công",
+                tags,
+                StatusCodeEnum.CATEGORY1000
+        );
+    }
+
+    public ResponseEntity<ResponseDto<CategoryResponse>> deleteTag(CategoryDeleteTagRequest request){
+        CategoryModel categoryModel = categoryRepository.findById(request.getIdCategory()).orElse(null);
+        if (categoryModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy danh mục",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        if(categoryModel.getParentId() != null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể xóa danh sách tag list",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+        Set<String> currentTags = categoryModel.getTags();
+        if(currentTags != null && request.getTags() != null & !request.getTags().isEmpty()){
+            boolean anyDelete = currentTags.removeAll(request.getTags());
+            if(anyDelete){
+                categoryModel.setTags(currentTags);
+            }
+        }
+        try {
+            categoryModel = categoryRepository.save(categoryModel);
+            return ResponseBuilder.okResponse(
+                    "Xóa các tag thành công",
+                    mapper.map(categoryModel, CategoryResponse.class),
+                    StatusCodeEnum.CATEGORY1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Xóa tag thất bại",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+    }
+
 
     public ResponseEntity<ResponseDto<CategoryResponse>> getById(String id) {
         CategoryModel categoryModel = categoryRepository.findByIdAndIsDelete(id, false);
@@ -339,6 +400,16 @@ public class CategoryService {
             );
         }
     }
+
+    public ResponseEntity<ResponseDto<CountResponse>> countCategory(CategoryCountRequest request){
+        Integer total = categoryRepository.countByCreatedAtBetweenAndIsDeleteIsFalse(request.getStartTime(), request.getEndTime());
+        return ResponseBuilder.okResponse(
+                "Lấy tổng số lượng danh mục thành công",
+               CountResponse.builder().total(total).build(),
+                StatusCodeEnum.CATEGORY1000
+        );
+    }
+
 
     public CategoryModel getCategory(String id) {
         if (id == null || id.isEmpty()) {

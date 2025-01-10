@@ -1,17 +1,18 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
-import com.ducbao.service_be.model.dto.response.ServiceResponse;
-import com.ducbao.service_be.model.dto.response.ShopGetResponse;
-import com.ducbao.service_be.model.dto.response.ShopResponse;
+import com.ducbao.service_be.model.dto.request.ShopDeactiveRequest;
+import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
+import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.service.ShopService;
+import com.ducbao.service_be.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ import java.util.List;
 @Slf4j
 public class ShopCmsController {
     private final ShopService shopService;
-
+    private final UserService userService;
     @Operation(
             summary = "Kích hoạt cửa hàng",
             description = "Api Kích hoạt cửa hàng ",
@@ -152,6 +153,53 @@ public class ShopCmsController {
     }
 
     @Operation(
+            summary = "Lấy danh sách cửa hàng chưa được kích hoạt",
+            description = "Api Lấy danh sách cửa hàng chưa được kích hoạt",
+            tags = {"ADMIN:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Lấy danh sách cửa hàng chưa được kích hoạt", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách cửa hàng chưa được kích hoạt thành công",
+                          "data": {
+                          "success": true,
+                          "message": "Cập nhật dịch vụ thành công",
+                          "data": {
+                              "id": "6718c25e43333b7137e625f9",
+                              "idShop": "6718c19c43333b7137e625f8",
+                              "name": "CSCCS",
+                              "type": null,
+                              "description": "nhà hàng àlsclslcslcs",
+                              "thumbnail": "âcsccscs",
+                              "mediaUrl": [
+                                  "accccccaaa"
+                              ],
+                              "idCategory": null,
+                              "city": "HCM",
+                              "ward": "Quận 1",
+                              "district": "Phong vũ",
+                              "countReview": 10,
+                              "longitude": 10,
+                              "latitude": 10,
+                              "point": 10,
+                              "price": 5000000
+                          },
+                          "statusCode": "SHOP1000",
+                          "meta": null
+                          },
+                          statusCode: "SHOP1000"
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/list-shop-deactive")
+    public ResponseEntity<ResponseDto<List<ShopResponse>>> getListShopDeactive(@RequestBody @Valid ShopDeactiveRequest request){
+        log.info("getListShopDeactive() - {}", request);
+        return shopService.getListShopDeActive(request);
+    }
+
+    @Operation(
             summary = "Lấy danh sách thời gian của cửa hàng",
             description = "Api Lấy danh sách thời gian của cửa hàng",
             tags = {"ADMIN:SHOPS"})
@@ -234,4 +282,6 @@ public class ShopCmsController {
     public ResponseEntity<ResponseDto<ShopResponse>> blockShop(@PathVariable("id") String id){
         return shopService.blockShop(id);
     }
+
+
 }

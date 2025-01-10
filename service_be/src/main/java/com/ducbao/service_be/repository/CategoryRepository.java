@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface CategoryRepository extends MongoRepository<CategoryModel, String> {
     Page<CategoryModel> findByNameContainingAndIsDelete(String categoryName,boolean isDelete, Pageable pageable);
@@ -14,4 +16,6 @@ public interface CategoryRepository extends MongoRepository<CategoryModel, Strin
     Page<CategoryModel> findAllByIsDelete(boolean isDelete, Pageable pageable);
     CategoryModel findByIdAndIsDelete(String id,boolean isDelete);
     boolean existsByName(String name);
+
+    int countByCreatedAtBetweenAndIsDeleteIsFalse(LocalDateTime from, LocalDateTime to);
 }
