@@ -64,4 +64,6 @@ public class ShopBaseModel extends BaseModel {
     private boolean isOwner;
 
     private String phone;
+
+    private boolean isDeleted;
 }

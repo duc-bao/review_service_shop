@@ -5,10 +5,8 @@ import com.ducbao.common.model.constant.FileConstant;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.constant.AppConstants;
-import com.ducbao.service_be.model.dto.request.EmailRequest;
-import com.ducbao.service_be.model.dto.request.UserChangePassword;
-import com.ducbao.service_be.model.dto.request.UserForgotPassword;
-import com.ducbao.service_be.model.dto.request.UserRequest;
+import com.ducbao.service_be.model.dto.request.*;
+import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.dto.response.UserResponse;
 import com.ducbao.service_be.model.entity.UserModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
@@ -163,5 +161,14 @@ public class UserService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         UserModel userModel = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
         return userModel.getId();
+    }
+
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalUser(ShopTotalRequest totalRequest) {
+        int total = userRepository.countByCreatedAtBetween(totalRequest.getStartDate(), totalRequest.getEndDate());
+        return ResponseBuilder.okResponse(
+                "Lấy tổng số tài khoản trong thời gian thành công",
+                CountResponse.builder().total(total).build(),
+                StatusCodeEnum.USER1000
+        );
     }
 }

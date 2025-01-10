@@ -13,7 +13,7 @@ public class AppConstants {
             "<span style=\"font-weight: bolder;\"><font color=\"#ff0000\"></font></span></span>" +
             "</span></div><div style=\"font-size: 16px; letter-spacing: normal;\"><br></div>" +
             "<div style=\"font-size: 16px; letter-spacing: normal;\">Thanks,</div>";
-    public static final String LINK_ACTIVE_ACCOUNT = "http://localhost:8080/auth/active-account?code=";
+    public static final String LINK_ACTIVE_ACCOUNT = "http://localhost:5173/auth/login";
     public static final String CONTENT_SHOP_ACTIVATION = "Hello, [[name]]! Your shop has been successfully activated. You can start managing your shop at:" +  "<a href=\\\"[[URL]]\\\" target=\\\"_self\\\" style=\\\"color: rgb(0, 123, 255); background-color: \" +\n" +
             "            \"transparent; font-size: 16px; letter-spacing: normal;\\\">Di chuyển</a>.";
     public static final String LINK_SHOP = "http://localhost:8080/auth/shop";

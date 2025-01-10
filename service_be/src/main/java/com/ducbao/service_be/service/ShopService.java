@@ -54,7 +54,6 @@ public class ShopService {
     private final ElasticsearchOperations elasticsearchOperations;
 
 
-
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
 //        String idUser = userService.userId();
         UserModel userModel = userRepository.findByEmail(shopRequest.getEmail()).orElse(null);
@@ -77,7 +76,7 @@ public class ShopService {
         shopModel.setIdUser(userModel.getId());
         shopModel.setStatusShopEnums(StatusShopEnums.DEACTIVE);
 
-        if(!shopRequest.getOpenTimeRequests().isEmpty()) {
+        if (!shopRequest.getOpenTimeRequests().isEmpty()) {
             List<OpenTimeModel> openTimeBaseModelList = shopRequest.getOpenTimeRequests().stream().map(
                     openTimeRequest -> mapper.map(openTimeRequest, OpenTimeModel.class)).collect(Collectors.toList());
             openTimeBaseModelList = openTimeRepository.saveAll(openTimeBaseModelList);
@@ -179,7 +178,7 @@ public class ShopService {
         shopRepository.save(shopModel);
 
         return ResponseBuilder.okResponse(
-            "Cập nhật thời gian hoạt động của cửa hàng thành công",
+                "Cập nhật thời gian hoạt động của cửa hàng thành công",
                 updateOpenTime.stream().map(updateOpenTimes -> mapper.map(updateOpenTimes, OpenTimeResponse.class)).collect(Collectors.toList()),
                 StatusCodeEnum.SHOP1005
         );
@@ -272,30 +271,30 @@ public class ShopService {
         }
     }
 
-    public ResponseEntity<ResponseDto<ShopResponse>> updateActiveShop(String id, VerifyShopRequest verifyShopRequest){
-            ShopModel shopModel = shopRepository.findById(id).orElse(null);
-            if(shopModel == null){
-                return ResponseBuilder.badRequestResponse(
-                        "Không tìm thấy cửa hàng",
-                        StatusCodeEnum.SHOP1003
-                );
-            }
-            mapper.maptoObject(verifyShopRequest, shopModel);
-            String idUser = userService.userId();
-            shopModel.setIdUser(idUser);
-            try {
-                shopModel = shopRepository.save(shopModel);
-                return ResponseBuilder.okResponse(
-                        "Cập nhật chủ cửa hàng mới thành công vui lòng chờ admin xác nhận",
-                        mapper.map(shopModel, ShopResponse.class),
-                        StatusCodeEnum.SHOP1000
-                );
-            }catch (Exception e) {
-                return ResponseBuilder.badRequestResponse(
-                        "Lưu thất bại ",
-                        StatusCodeEnum.SHOP1001
-                );
-            }
+    public ResponseEntity<ResponseDto<ShopResponse>> updateActiveShop(String id, VerifyShopRequest verifyShopRequest) {
+        ShopModel shopModel = shopRepository.findById(id).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        mapper.maptoObject(verifyShopRequest, shopModel);
+        String idUser = userService.userId();
+        shopModel.setIdUser(idUser);
+        try {
+            shopModel = shopRepository.save(shopModel);
+            return ResponseBuilder.okResponse(
+                    "Cập nhật chủ cửa hàng mới thành công vui lòng chờ admin xác nhận",
+                    mapper.map(shopModel, ShopResponse.class),
+                    StatusCodeEnum.SHOP1000
+            );
+        } catch (Exception e) {
+            return ResponseBuilder.badRequestResponse(
+                    "Lưu thất bại ",
+                    StatusCodeEnum.SHOP1001
+            );
+        }
     }
 
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(String id) {
@@ -551,7 +550,7 @@ public class ShopService {
                     mapper.map(shopModel, ShopResponse.class),
                     StatusCodeEnum.SHOP1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Xảy ra lỗi khi lưu cửa hàng",
                     StatusCodeEnum.SHOP1001
@@ -578,6 +577,45 @@ public class ShopService {
 
     }
 
+    public ResponseEntity<ResponseDto<List<ShopResponse>>> getListShopDeActive(ShopDeactiveRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
+        String status = StatusShopEnums.ACTIVE.toString();
+        if (request.isDeActive()) {
+            status = StatusShopEnums.DEACTIVE.toString();
+        }
+
+        String keyword = request.getKeyword() != null ? request.getKeyword() : "";
+        Page<ShopModel> shopModelList = shopRepository.findShopsByCriteria(keyword, status, pageable);
+        List<ShopModel> shopModels = shopModelList.getContent();
+        List<ShopResponse> shopResponses = shopModels.stream().map(
+                shopModel -> mapper.map(shopModel, ShopResponse.class)
+        ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .currentPage(request.getPage())
+                .pageSize(request.getSize())
+                .total(shopModelList.getTotalElements())
+                .totalPage(shopModelList.getTotalPages())
+                .build();
+
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách cửa hàng thành công",
+                shopResponses,
+                metaData,
+                StatusCodeEnum.SHOP1000
+        );
+    }
+
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalShop(ShopTotalRequest request){
+        int total = shopRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
+        return ResponseBuilder.okResponse(
+                "Tổng số cửa hàng theo thời gian",
+                CountResponse.builder()
+                        .total(total)
+                        .build(),
+                StatusCodeEnum.SHOP1000
+        );
+    }
     private ServiceModel mapShop(ShopModel shopModel, ServiceModel serviceModel) {
         serviceModel.setIdShop(shopModel.getId());
         serviceModel.setLatitude(shopModel.getLatitude());

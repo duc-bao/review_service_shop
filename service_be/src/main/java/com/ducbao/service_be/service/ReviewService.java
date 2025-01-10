@@ -8,6 +8,8 @@ import com.ducbao.common.util.Util;
 import com.ducbao.service_be.model.dto.request.ReviewReactionRequest;
 import com.ducbao.service_be.model.dto.request.ReviewRequest;
 import com.ducbao.service_be.model.dto.request.ReviewUpdateRequest;
+import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
+import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.dto.response.ReviewResponse;
 import com.ducbao.service_be.model.dto.response.ReviewUserResponse;
 import com.ducbao.service_be.model.dto.response.UserReviewInfo;
@@ -443,6 +445,15 @@ public class ReviewService {
             );
         }
 
+    }
+
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalReview(ShopTotalRequest request){
+        int total = reviewRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
+        return ResponseBuilder.okResponse(
+                "Lấy tổng số đánh giá trong khoảng thời gian thành công",
+                CountResponse.builder().total(total).build(),
+                StatusCodeEnum.REVIEW1000
+        );
     }
 
     private void updateReactionUser(UserModel userModel, ReviewReactionRequest reviewReactionRequest) {
