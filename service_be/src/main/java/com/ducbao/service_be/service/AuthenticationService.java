@@ -112,7 +112,7 @@ public class AuthenticationService {
         try {
             userRepository.save(userModel);
             emailService.sendEmail(emailRequest);
-            return ResponseBuilder.badRequestResponse(
+            return ResponseBuilder.okResponse(
                     "Đăng kí tài khoản thành công vui lòng kiểm tra email để kích hoạt tài khoản",
                     StatusCodeEnum.USER1000
             );
@@ -168,7 +168,7 @@ public class AuthenticationService {
         try {
             userRepository.save(userModel);
 //            emailService.sendEmail(emailRequest);
-            return ResponseBuilder.badRequestResponse(
+            return ResponseBuilder.okResponse(
                     "Đăng kí tài khoản thành công vui lòng kiểm tra email để kích hoạt tài khoản",
                     StatusCodeEnum.USER1000
             );
