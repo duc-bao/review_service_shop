@@ -153,12 +153,12 @@ public class ShopCmsController {
     }
 
     @Operation(
-            summary = "Lấy danh sách cửa hàng chưa được kích hoạt",
-            description = "Api Lấy danh sách cửa hàng chưa được kích hoạt",
+            summary = "Lấy tất cả danh sách cửa hàng đã được kích hoạt hoặc chưa kích hoạt hoặc tất cả cửa hàng cho admin",
+            description = "Api Lấy tất cả danh sách cửa hàng đã được kích hoạt hoặc chưa kích hoạt hoặc tất cả cửa hàng cho admin",
             tags = {"ADMIN:SHOPS"})
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "SHOP1000", description = "Lấy danh sách cửa hàng chưa được kích hoạt", content = {@Content(examples = @ExampleObject(value = """
+                    responseCode = "SHOP1000", description = "Lấy tất cả danh sách cửa hàng đã được kích hoạt hoặc chưa kích hoạt hoặc tất cả cửa hàng cho admin", content = {@Content(examples = @ExampleObject(value = """
                      {
                           "success": true,
                           "message": "Lấy danh sách cửa hàng chưa được kích hoạt thành công",

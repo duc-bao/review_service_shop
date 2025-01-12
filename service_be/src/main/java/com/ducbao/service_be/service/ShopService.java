@@ -578,14 +578,15 @@ public class ShopService {
     }
 
     public ResponseEntity<ResponseDto<List<ShopResponse>>> getListShopDeActive(ShopDeactiveRequest request) {
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
-        String status = StatusShopEnums.ACTIVE.toString();
-        if (request.isDeActive()) {
-            status = StatusShopEnums.DEACTIVE.toString();
-        }
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by("createdAt").descending());
+
+        String status = (request.getStatusShopEnums() == null || request.getStatusShopEnums().equals("")) ? "" :
+                request.getStatusShopEnums().equals("ACTIVE") ?
+                        StatusShopEnums.ACTIVE.toString() :
+                        StatusShopEnums.DEACTIVE.toString();
 
         String keyword = request.getKeyword() != null ? request.getKeyword() : "";
-        Page<ShopModel> shopModelList = shopRepository.findShopsByCriteria(keyword, status, pageable);
+        Page<ShopModel> shopModelList = shopRepository.findShopsByCriteria(keyword,status , pageable);
         List<ShopModel> shopModels = shopModelList.getContent();
         List<ShopResponse> shopResponses = shopModels.stream().map(
                 shopModel -> mapper.map(shopModel, ShopResponse.class)
