@@ -2,7 +2,9 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.CategoryForUserRequest;
+import com.ducbao.service_be.model.dto.request.SuggestTagRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
+import com.ducbao.service_be.model.dto.response.TagResponse;
 import com.ducbao.service_be.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -202,5 +204,38 @@ public class CategoryController {
     ){
         log.info("addCategory: {}", categoryForUserRequest);
         return categoryService.createCategoryForUser(categoryForUserRequest);
+    }
+
+
+    @Operation(
+            summary = "Lấy danh sách tags gợi ý từ các từ khóa",
+            description = "API lấy danh sách tags gợi ý từ các từ khóa",
+            tags = {"USERS:CAT"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "CATEGORY1000",
+                    description = "Lấy danh sách tags gợi ý từ các từ khóa",
+                    content = {
+                            @Content(examples = @ExampleObject(value = """
+                                    {
+                                       "success": true,
+                                      "message": "Tạo mới danh mục cho user thành công",
+                                      "data": {
+                                             tags: [
+                                            "mặn",
+                                            "ngọt"
+                                            ]
+                                      },
+                                      statusCode: "CATEGORY1000"
+                      }
+                                    """))
+                    }
+            )
+    })
+    @PostMapping("/suggest-tag")
+    public ResponseEntity<ResponseDto<TagResponse>> suggestTagForUser(@RequestBody SuggestTagRequest request){
+        log.info("suggestTagForUser: {}", request);
+        return categoryService.suggestTagForUser(request);
     }
 }
