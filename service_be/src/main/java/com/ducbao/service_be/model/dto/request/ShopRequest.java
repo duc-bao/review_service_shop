@@ -1,6 +1,8 @@
 package com.ducbao.service_be.model.dto.request;
 
 import com.ducbao.common.model.enums.CategoryEnums;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,10 +12,12 @@ import java.util.List;
 public class ShopRequest {
     private String name;
 
+    @NotNull
     private String avatar;
 
     private String imageBusiness;
 
+    @NotNull
     private String email;
 
     private List<String> mediaUrls;
