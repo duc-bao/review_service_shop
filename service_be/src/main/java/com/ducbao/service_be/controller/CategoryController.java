@@ -124,7 +124,6 @@ public class CategoryController {
             ),
     })
     @GetMapping("")
-    @PreAuthorize("hasAnyRole('OWNER', 'USER')")
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCategories(
             @RequestParam(value = "sort", defaultValue = "id") String sort,
             @RequestParam(value = "limit", defaultValue = "12") int limit,
@@ -158,7 +157,6 @@ public class CategoryController {
                     """))}
             ),
     })
-    @PreAuthorize("hasAnyRole('OWNER', 'USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<CategoryResponse>> getCategoryById(@PathVariable String id) {
         return categoryService.getById(id);
