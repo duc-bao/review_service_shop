@@ -110,12 +110,36 @@ public class ShopController {
             ),
     })
     @PostMapping("/create-shop")
+    @SecurityRequirements(value = {})
 //    @PreAuthorize("hasAuthority('OWNER')")
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(@RequestBody ShopRequest shopRequest) {
         return shopService.createShop(shopRequest);
     }
 
 
+    //    @Operation(
+//            summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
+//            description = "Api tải ảnh của cửa hàng lên hệ thống",
+//            tags = {"USERS:SHOPS"}
+//    )
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
+//                     {
+//                    	"success": true,
+//                    	"message": "Tải ảnh cửa hàng lên thành công",
+//                    	"data": [
+//                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+//                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
+//                                 ],
+//                    	"statusCode": "SHOP1002"
+//                    }
+//                    """))}
+//            ),
+//    })
+//    @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<ResponseDto<String>> uploadImageShop(@RequestParam("file") MultipartFile file) {
+//        return shopService.uploadImagme(file);
+//    }
     @Operation(
             summary = "Tải ảnh đại diện của cửa hàng lên hệ thống",
             description = "Api tải ảnh của cửa hàng lên hệ thống",
@@ -124,20 +148,21 @@ public class ShopController {
     @ApiResponses({
             @ApiResponse(responseCode = "SHOP1002", description = "Tải ảnh của cửa hàng lên hệ thống", content = {@Content(examples = @ExampleObject(value = """
                      {
-                    	"success": true,
-                    	"message": "Tải ảnh cửa hàng lên thành công",
-                    	"data": [
+                        "success": true,
+                        "message": "Tải ảnh cửa hàng lên thành công",
+                        "data": [
                                      "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
                                      "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
                                  ],
-                    	"statusCode": "SHOP1002"
+                        "statusCode": "SHOP1002"
                     }
                     """))}
             ),
     })
     @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<String>> uploadImageShop(@RequestParam("file") MultipartFile file) {
-        return shopService.uploadImagme(file);
+    @SecurityRequirements(value = {})
+    public ResponseEntity<ResponseDto<String>> uploadImageAvatar(@RequestPart("file") MultipartFile file, @RequestPart("email") String email) {
+        return shopService.uploadAvatar(file, email);
     }
 
     @Operation(
@@ -157,8 +182,9 @@ public class ShopController {
             ),
     })
     @PutMapping(value = "upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestPart("files") MultipartFile[] files) {
-        return shopService.uploadMultiFile(files);
+    @SecurityRequirements(value = {})
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestPart("files") MultipartFile[] files, @RequestPart("email") String email) {
+        return shopService.uploadMultipartFile(files, email);
     }
 
     @Operation(
@@ -242,7 +268,7 @@ public class ShopController {
             ),
     })
     @GetMapping("/service/{id}")
-    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
+    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id) {
         return shopService.getServiceById(id);
     }
 
@@ -378,9 +404,9 @@ public class ShopController {
             @RequestParam(value = "sort", defaultValue = "createAt") String s,
             @RequestParam(value = "limit", defaultValue = "12") int limit,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "keyword" , required = false) String q,
+            @RequestParam(value = "keyword", required = false) String q,
             @RequestParam(value = "filter", required = false) String filter
-    ){
+    ) {
         return shopService.getAllService(limit, page, s, q, filter);
     }
 
@@ -406,7 +432,7 @@ public class ShopController {
             ),
     })
     @GetMapping("/score/{id}")
-    public ResponseEntity<ResponseDto<Double>> getScoreReview(@PathVariable("id") String id){
+    public ResponseEntity<ResponseDto<Double>> getScoreReview(@PathVariable("id") String id) {
         return shopService.getPointReview(id);
     }
 
@@ -448,7 +474,7 @@ public class ShopController {
             ),
     })
     @PutMapping("/update-active-shop/{id}")
-    public ResponseEntity<ResponseDto<ShopResponse>> updateActiveShop(@PathVariable("id") String id, @RequestBody VerifyShopRequest verifyShopRequest){
+    public ResponseEntity<ResponseDto<ShopResponse>> updateActiveShop(@PathVariable("id") String id, @RequestBody VerifyShopRequest verifyShopRequest) {
         return shopService.updateActiveShop(id, verifyShopRequest);
     }
 
@@ -490,10 +516,7 @@ public class ShopController {
             ),
     })
     @GetMapping("/get-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id) {
         return shopService.getListOpenTime(id);
     }
-
-
-
 }

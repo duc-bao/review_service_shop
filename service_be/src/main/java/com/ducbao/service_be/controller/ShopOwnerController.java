@@ -1,13 +1,8 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.OpenTimeRequest;
-import com.ducbao.service_be.model.dto.request.ServiceRequest;
-import com.ducbao.service_be.model.dto.request.ShopRequest;
-import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
-import com.ducbao.service_be.model.dto.response.ServiceResponse;
-import com.ducbao.service_be.model.dto.response.ShopGetResponse;
-import com.ducbao.service_be.model.dto.response.ShopResponse;
+import com.ducbao.service_be.model.dto.request.*;
+import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.service.ShopService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -105,6 +100,7 @@ public class ShopOwnerController {
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(@PathVariable("id") String id) {
         return shopService.getShopById(id);
     }
+
     @Operation(
             summary = "Tạo dịch vụ với từng cửa hàng",
             description = "Api Tạo dịch vụ với từng cửa hàng ",
@@ -186,9 +182,10 @@ public class ShopOwnerController {
             ),
     })
     @PutMapping("/update-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests,@PathVariable("id") String id) {
-        return shopService.updateOpenTime(openTimeRequests,id);
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests, @PathVariable("id") String id) {
+        return shopService.updateOpenTime(openTimeRequests, id);
     }
+
     @Operation(
             summary = "Cập nhật dịch vụ với từng cửa hàng",
             description = "Api Cập nhật dịch vụ với từng cửa hàng ",
@@ -229,6 +226,7 @@ public class ShopOwnerController {
     public ResponseEntity<ResponseDto<ServiceResponse>> updateService(@RequestBody ServiceRequest serviceRequest, @PathVariable String id) {
         return shopService.updateService(serviceRequest, id);
     }
+
     @Operation(
             summary = "Xóa dịch vụ của cửa hàng đó",
             description = "Api xóa dịch vụ với cửa hàng đó",
@@ -317,7 +315,7 @@ public class ShopOwnerController {
             ),
     })
     @GetMapping("/service/{id}")
-    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id){
+    public ResponseEntity<ResponseDto<ServiceResponse>> getServiceById(@PathVariable String id) {
         return shopService.getServiceById(id);
     }
 
@@ -359,7 +357,49 @@ public class ShopOwnerController {
             ),
     })
     @GetMapping("/get-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id){
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id) {
         return shopService.getListOpenTime(id);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách đánh giá của cửa hàng đó",
+            description = "Api Lấy danh sách đánh giá của cửa hàng đó",
+            tags = {"OWNER:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách đánh giá của cửa hàng đó", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách đánh giá theo cửa hàng thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/get-review")
+    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getListReview(@RequestBody ShopReviewRequest shopReviewRequest) {
+        return shopService.getReviewByShop(shopReviewRequest);
     }
 }
