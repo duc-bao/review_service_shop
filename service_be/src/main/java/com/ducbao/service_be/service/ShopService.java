@@ -320,12 +320,45 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile[] files) {
-        String idUser = userService.userId();
-        List<String> mediaUrls = new ArrayList<>();
+//    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile[] files) {
+////        String idUser = userService.userId();
+//        String idUser = "123";
+//        List<String> mediaUrls = new ArrayList<>();
+//
+//        for (MultipartFile file : files) {
+//            String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
+//            mediaUrls.add(url);
+//        }
+//        return ResponseBuilder.okResponse(
+//                "Tải nhiều ảnh của cửa hàng lên thành công",
+//                mediaUrls,
+//                StatusCodeEnum.SHOP1002
+//        );
+//
+//    }
 
+//    public ResponseEntity<ResponseDto<String>> uploadImagme(MultipartFile file) {
+//        String idUser = userService.userId();
+//        String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
+//        return ResponseBuilder.okResponse(
+//                "Tải ảnh lên thành công",
+//                url,
+//                StatusCodeEnum.SHOP1002
+//        );
+//    }
+
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultipartFile(MultipartFile[] files, String email){
+        UserModel userModel = userRepository.findByEmail(email).orElse(null);
+        if(userModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy tài khoản",
+                    StatusCodeEnum.USER1002
+            );
+        }
+
+        List<String> mediaUrls = new ArrayList<>();
         for (MultipartFile file : files) {
-            String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
+           String url =  fileService.upload(file, userModel.getId(), FileConstant.IMAGE_SHOP);
             mediaUrls.add(url);
         }
         return ResponseBuilder.okResponse(
@@ -333,19 +366,23 @@ public class ShopService {
                 mediaUrls,
                 StatusCodeEnum.SHOP1002
         );
-
     }
 
-    public ResponseEntity<ResponseDto<String>> uploadImagme(MultipartFile file) {
-        String idUser = userService.userId();
-        String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
+    public ResponseEntity<ResponseDto<String>> uploadAvatar(MultipartFile file, String email) {
+       UserModel userModel = userRepository.findByEmail(email).orElse(null);
+       if(userModel == null){
+           return ResponseBuilder.badRequestResponse(
+                   "Không tìm thấy user",
+                   StatusCodeEnum.USER1002
+           );
+       }
+        String url = fileService.upload(file, userModel.getId(), FileConstant.IMAGE_SHOP);
         return ResponseBuilder.okResponse(
                 "Tải ảnh lên thành công",
                 url,
                 StatusCodeEnum.SHOP1002
         );
     }
-
     public ResponseEntity<ResponseDto<ServiceResponse>> createService(ServiceRequest serviceRequest) {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
@@ -617,6 +654,38 @@ public class ShopService {
                 StatusCodeEnum.SHOP1000
         );
     }
+
+    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getReviewByShop(ShopReviewRequest request){
+        String idUser = userService.userId();
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if(shopModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng hiện tại",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        Page<ReviewModel> reviewModelPage = reviewRepository.findAllByIdShop(shopModel.getId(), pageable);
+        List<ReviewModel> reviewModels = reviewModelPage.getContent();
+        List<ReviewResponse> reviewResponses = reviewModels.stream()
+                .map(
+                        reviewModel -> mapper.map(reviewModel, ReviewResponse.class)
+                ).collect(Collectors.toList());
+        MetaData metaData = MetaData.builder()
+                .total(reviewModelPage.getTotalPages())
+                .totalPage(reviewModelPage.getTotalPages())
+                .currentPage(request.getPage())
+                .pageSize(request.getSize())
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách đánh giá theo cửa hàng thành công",
+                reviewResponses,
+                metaData,
+                StatusCodeEnum.SHOP1000
+        );
+    }
+
     private ServiceModel mapShop(ShopModel shopModel, ServiceModel serviceModel) {
         serviceModel.setIdShop(shopModel.getId());
         serviceModel.setLatitude(shopModel.getLatitude());

@@ -171,4 +171,21 @@ public class UserService {
                 StatusCodeEnum.USER1000
         );
     }
+
+    public ResponseEntity<ResponseDto<UserResponse>> getByUser() {
+        String idUser = userId();
+        UserModel userModel = userRepository.findById(idUser).orElse(null);
+        if (userModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy User",
+                    StatusCodeEnum.USER1002
+            );
+        }
+
+        return ResponseBuilder.okResponse(
+                "Lấy thông tin user đã đăng nhập thành công",
+                mapper.map(userModel, UserResponse.class),
+                StatusCodeEnum.USER1000
+        );
+    }
 }

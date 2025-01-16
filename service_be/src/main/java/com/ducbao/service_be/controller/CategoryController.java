@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -197,6 +198,7 @@ public class CategoryController {
             ),
     })
     @PostMapping("/add-cat")
+    @SecurityRequirements(value = {})
     public ResponseEntity<ResponseDto<CategoryResponse>> addCategory(
             @RequestBody @Valid CategoryForUserRequest categoryForUserRequest
     ){
@@ -232,6 +234,7 @@ public class CategoryController {
             )
     })
     @PostMapping("/suggest-tag")
+    @SecurityRequirements(value = {})
     public ResponseEntity<ResponseDto<TagResponse>> suggestTagForUser(@RequestBody SuggestTagRequest request){
         log.info("suggestTagForUser: {}", request);
         return categoryService.suggestTagForUser(request);

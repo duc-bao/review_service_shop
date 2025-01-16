@@ -185,4 +185,37 @@ public class UserController {
         return userService.getUserById(id);
     }
 
+    @Operation(
+            summary = "Lấy thông tin user đã đăng nhập",
+            description = "Api Lấy thông tin user đã đăng nhập",
+            tags = {"USERS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "USER1006", description = "Lấy thông tin tài khoản user đã đăng nhập", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thông tin user đã đăng nhập thành công",
+                          "data": {
+                               "id": "6704f957a77f0442b1e32a23",
+                               "username": "ducbao",
+                               "email": "anhbao200222@britizhschool.edu.pl",
+                               "phone": "0203032671",
+                               "city": "asssccccs",
+                               "avatar": "https://example.com/avatar.jpg",
+                               "ward": "Ward 3",
+                               "district": "District 1",
+                               "firstName": "Dca",
+                               "lastName": "Baccc",
+                               "dateOfBirth": null
+                          },
+                          "statusCode": "USER1006",
+                          "meta": null
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/get-user")
+    public ResponseEntity<ResponseDto<UserResponse>> getUser() {
+        return userService.getByUser();
+    }
 }
