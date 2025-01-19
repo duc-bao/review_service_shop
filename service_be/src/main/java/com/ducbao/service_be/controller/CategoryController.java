@@ -239,4 +239,33 @@ public class CategoryController {
         log.info("suggestTagForUser: {}", request);
         return categoryService.suggestTagForUser(request);
     }
+
+    @Operation(
+            summary = "Kiểm tra tính hợp lệ của Tag",
+            description = "API Kiểm tra tính hợp lệ của Tag",
+            tags = {"USERS:CAT"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "CATEGORY1000",
+                    description = "Kiểm tra tính hợp lệ của Tag",
+                    content = {
+                            @Content(examples = @ExampleObject(value = """
+                                    {
+                                       "success": true,
+                                      "message": "Tên tag hợp lệ với tag danh mục",
+                                      "data": {
+                                      },
+                                      statusCode: "CATEGORY1000"
+                      }
+                                    """))
+                    }
+            )
+    })
+    @PostMapping("/validate-tag")
+    @SecurityRequirements(value = {})
+    public ResponseEntity<ResponseDto<Void>> validateCategory(@RequestBody CategoryForUserRequest request){
+        log.info("validateCategory: {}", request);
+        return categoryService.validateNameCategory(request);
+    }
 }

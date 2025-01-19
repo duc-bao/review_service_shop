@@ -17,4 +17,5 @@ public interface ReviewRepository extends MongoRepository<ReviewModel, String> {
     List<ReviewModel> findAllByIdShop(String idShop);
     Page<ReviewModel> findAllByIdShop(String idUser, Pageable pageable);
     int countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+    int countByCreatedAtBetweenAndIdShop(LocalDateTime from, LocalDateTime to, String idShop);
 }

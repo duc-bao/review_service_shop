@@ -4,10 +4,7 @@ import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.CategoryCountRequest;
 import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
 import com.ducbao.service_be.model.dto.response.CountResponse;
-import com.ducbao.service_be.service.CategoryService;
-import com.ducbao.service_be.service.ReviewService;
-import com.ducbao.service_be.service.ShopService;
-import com.ducbao.service_be.service.UserService;
+import com.ducbao.service_be.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -24,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/analytic")
-@RolesAllowed(value = "ADMIN")
 @RequiredArgsConstructor
 @Slf4j
 public class AnalyticController {
@@ -32,7 +28,7 @@ public class AnalyticController {
     private final ShopService shopService;
     private final CategoryService categoryService;
     private final ReviewService reviewService;
-
+    private final FavoriteService favoriteService;
 
     @Operation(
             summary = "Tổng số cửa hàng trong thời gian",
@@ -54,6 +50,7 @@ public class AnalyticController {
                     """))}
             ),
     })
+    @RolesAllowed(value = "ADMIN")
     @PostMapping("/count-shop")
     public ResponseEntity<ResponseDto<CountResponse>> countShop(@RequestBody ShopTotalRequest request){
         log.info("countShop() : {}", request);
@@ -80,6 +77,7 @@ public class AnalyticController {
                     """))}
             ),
     })
+    @RolesAllowed(value = "ADMIN")
     @PostMapping("/count-user")
     public ResponseEntity<ResponseDto<CountResponse>> countUser(@RequestBody ShopTotalRequest request){
         log.info("countUser(): {}", request);
@@ -106,6 +104,7 @@ public class AnalyticController {
                     """))}
             ),
     })
+    @RolesAllowed(value = "ADMIN")
     @PostMapping("/count-review")
     public ResponseEntity<ResponseDto<CountResponse>> countReview(@RequestBody ShopTotalRequest request){
         log.info("countReview(): {}", request);
@@ -130,9 +129,59 @@ public class AnalyticController {
                     """))}
             ),
     })
+    @RolesAllowed(value = "ADMIN")
     @PostMapping("/count-category")
     public ResponseEntity<ResponseDto<CountResponse>> getTotalCategory(@RequestBody CategoryCountRequest categoryCountRequest){
         log.info("getTotalCategory: {}", categoryCountRequest);
         return categoryService.countCategory(categoryCountRequest);
+    }
+    @Operation(
+            summary = "Lấy tổng số đánh giá theo cửa hàng",
+            description = "API Lấy tổng số đánh giá theo cửa hàng",
+            tags = {"OWNER:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "REVIEW1000", description = "API Lấy tổng số đánh giá theo cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy Lấy tổng số đánh giá theo cửa hàng thành công",
+                          "data": {
+                                5
+                          },
+                          statusCode: "REVIEW1000"
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "OWNER")
+    @PostMapping("/count-review-shop")
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalReviewByShop(@RequestBody ShopTotalRequest request){
+        log.info("getTotalReviewByShop: {}", request);
+        return reviewService.getTotalReviewShop(request);
+    }
+
+    @Operation(
+            summary = "Lấy tổng số yêu thích theo cửa hàng",
+            description = "API Lấy tổng số yêu thích theo cửa hàng",
+            tags = {"OWNER:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "FAVORITE1000", description = "API Lấy tổng yêu thích theo cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy tổng yêu thích theo cửa hàng thành công",
+                          "data": {
+                                5
+                          },
+                          statusCode: "FAVORITE1000"
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "OWNER")
+    @PostMapping("/count-favorite-shop")
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalFavoriteShop(@RequestBody ShopTotalRequest request){
+        log.info("getTotalFavoriteShop(): {}", request);
+        return favoriteService.getTotalFavorite(request);
     }
 }

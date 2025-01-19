@@ -14,10 +14,14 @@ import com.ducbao.service_be.model.entity.UserModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +31,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -36,38 +42,47 @@ public class AuthenticationService {
     private final EmailService emailService;
 
     public ResponseEntity<ResponseDto<LoginResponse>> login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
-        );
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+            );
 
-        if (authentication.isAuthenticated()) {
-            String token = jwtService.generateToken(authentication);
-            String userId = jwtService.getUserIdFromJWT(token);
+            if (authentication.isAuthenticated()) {
+                String token = jwtService.generateToken(authentication);
+                String userId = jwtService.getUserIdFromJWT(token);
 
-            UserModel userModel = userRepository.findById(userId).orElse(null);
-            UserInfoResponse userInfoResponse = commonMapper.map(userModel, UserInfoResponse.class);
-            LoginResponse loginResponse = LoginResponse.builder()
-                    .accessToken(token)
-                    .userInfoResponse(userInfoResponse)
-                    .build();
+                UserModel userModel = userRepository.findById(userId).orElse(null);
+                UserInfoResponse userInfoResponse = commonMapper.map(userModel, UserInfoResponse.class);
+                LoginResponse loginResponse = LoginResponse.builder()
+                        .accessToken(token)
+                        .userInfoResponse(userInfoResponse)
+                        .build();
 
-            if ("ACTIVE".equals(userModel.getStatusUserEnums().toString())) {
-                return ResponseBuilder.okResponse(
-                        "Đăng nhập thành công",
-                        loginResponse,
-                        StatusCodeEnum.LOGIN1000
+                if ("ACTIVE".equals(userModel.getStatusUserEnums().toString())) {
+                    return ResponseBuilder.okResponse(
+                            "Đăng nhập thành công",
+                            loginResponse,
+                            StatusCodeEnum.LOGIN1000
+                    );
+                }
+                return ResponseBuilder.badRequestResponse(
+                        "Đăng nhập thất bại do tài khoản chưa được kích hoạt",
+                        StatusCodeEnum.LOGIN1001
                 );
             }
             return ResponseBuilder.badRequestResponse(
-                    "Đăng nhập thất bại do tài khoản chưa được kích hoạt",
+                    "Tên đăng nhập hoặc mật khẩu không chính xác",
+                    null,
+                    StatusCodeEnum.LOGIN1001
+            );
+        }catch (AuthenticationException e){
+            log.error("Error Login() - {}", e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Tên đăng nhập hoặc mật khẩu không chính xác",
+                    null,
                     StatusCodeEnum.LOGIN1001
             );
         }
-        return ResponseBuilder.badRequestResponse(
-                "Tên đăng nhập hoặc mật khẩu không chính xác",
-                null,
-                StatusCodeEnum.LOGIN1001
-        );
     }
 
     public ResponseEntity<ResponseDto<Void>> register(ResgisterRequest registerRequest) {

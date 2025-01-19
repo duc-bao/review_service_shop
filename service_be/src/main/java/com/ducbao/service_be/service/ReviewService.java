@@ -32,8 +32,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -448,7 +450,11 @@ public class ReviewService {
     }
 
     public ResponseEntity<ResponseDto<CountResponse>> getTotalReview(ShopTotalRequest request){
-        int total = reviewRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
+        LocalDateTime startDate = Optional.ofNullable(request.getStartDate())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime endDate = Optional.ofNullable(request.getEndDate())
+                .orElse(LocalDateTime.now());
+        int total = reviewRepository.countByCreatedAtBetween(startDate, endDate);
         return ResponseBuilder.okResponse(
                 "Lấy tổng số đánh giá trong khoảng thời gian thành công",
                 CountResponse.builder().total(total).build(),
@@ -456,6 +462,27 @@ public class ReviewService {
         );
     }
 
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalReviewShop(ShopTotalRequest request){
+        String idUser = userService.userId();
+        ShopModel shopModel  = shopRepository.findById(idUser).orElse(null);
+        if(shopModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        LocalDateTime startDate = Optional.ofNullable(request.getStartDate())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime endDate = Optional.ofNullable(request.getEndDate())
+                .orElse(LocalDateTime.now());
+        int  total = reviewRepository.countByCreatedAtBetweenAndIdShop(startDate, endDate, shopModel.getId());
+        return ResponseBuilder.okResponse(
+                "Lấy tổng số đánh giá theo cửa hàng trong thời gian thành công",
+                CountResponse.builder().total(total).build(),
+                StatusCodeEnum.REVIEW1000
+        );
+
+    }
     private void updateReactionUser(UserModel userModel, ReviewReactionRequest reviewReactionRequest) {
         if(reviewReactionRequest.isRemove()){
             switch (reviewReactionRequest.getType()){
