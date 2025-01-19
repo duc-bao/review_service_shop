@@ -5,6 +5,8 @@ import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.dto.request.FavoriteRequest;
+import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
+import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.dto.response.FavoriteResponse;
 import com.ducbao.service_be.model.entity.FavoriteModel;
 import com.ducbao.service_be.model.entity.ShopModel;
@@ -21,9 +23,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -139,6 +143,27 @@ public class FavoriteService {
                     StatusCodeEnum.FAVORITE1001
             );
         }
+    }
+
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalFavorite(ShopTotalRequest request) {
+        String idUser = userService.userId();
+        ShopModel shopModel  = shopRepository.findById(idUser).orElse(null);
+        if(shopModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        LocalDateTime startDate = Optional.ofNullable(request.getStartDate())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime endDate = Optional.ofNullable(request.getEndDate())
+                .orElse(LocalDateTime.now());
+        int  total = favoriteRepository.countByCreatedAtBetweenAndIdShop(startDate, endDate, shopModel.getId());
+        return ResponseBuilder.okResponse(
+                "Lấy tổng số đánh giá theo cửa hàng trong thời gian thành công",
+                CountResponse.builder().total(total).build(),
+                StatusCodeEnum.FAVORITE1000
+        );
     }
 
 }

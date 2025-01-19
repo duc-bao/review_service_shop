@@ -364,7 +364,7 @@ public class CategoryService {
                     StatusCodeEnum.CATEGORY1001
             );
         }
-        Set<String> tags = categoryRequest.getTags();
+        Set<String> tags = categoryParent.getTags();
         Set<String> parentTags = categoryParent.getTags().stream().map(
                 String::toLowerCase
         ).collect(Collectors.toSet());
@@ -402,6 +402,7 @@ public class CategoryService {
         }
     }
 
+
     public ResponseEntity<ResponseDto<TagResponse>> suggestTagForUser(SuggestTagRequest request) {
         CategoryModel categoryModel = categoryRepository.findById(request.getIdCategory()).orElse(null);
         if (categoryModel == null) {
@@ -422,7 +423,9 @@ public class CategoryService {
 
         Set<String> tags = categoryModel.getTags()
                 .stream().
-                filter(tag -> tag.toLowerCase().matches(keyword + ".*")).collect(Collectors.toSet());
+                filter(tag -> tag.toLowerCase().matches(".*" + keyword + ".*"))
+                .limit(8)
+                .collect(Collectors.toSet());
 
         return ResponseBuilder.okResponse(
                 "Lấy danh sách các tag gợi ý thành công",
@@ -431,6 +434,41 @@ public class CategoryService {
         );
     }
 
+    public ResponseEntity<ResponseDto<Void>> validateNameCategory(CategoryForUserRequest request) {
+        CategoryModel categoryModel = categoryRepository.findById(request.getIdParent()).orElse(null);
+        if (categoryModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy thể loại",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        if (categoryModel.getTags() == null || categoryModel.getTags().isEmpty()) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không có tags nào trong thể loại vui lòng thử lại",
+                    StatusCodeEnum.CATEGORY1002
+            );
+        }
+
+        Set<String> normalizedTags = categoryModel.getTags().stream()
+                .map(tag -> tag.trim().toLowerCase())
+                .collect(Collectors.toSet());
+
+        Set<String> normalizedParentTags = request.getTags().stream()
+                .map(tag -> tag.trim().toLowerCase())
+                .collect(Collectors.toSet());
+        boolean valid = normalizedTags.containsAll(normalizedParentTags);
+        if (!valid) {
+            return ResponseBuilder.badRequestResponse(
+                    "Tên tag không hợp lệ",
+                    StatusCodeEnum.CATEGORY1001
+            );
+        }
+        return ResponseBuilder.okResponse(
+                "Tên tag hợp lệ với tag danh mục",
+                StatusCodeEnum.CATEGORY1000
+        );
+    }
 
     public ResponseEntity<ResponseDto<CountResponse>> countCategory(CategoryCountRequest request) {
         Integer total = categoryRepository.countByCreatedAtBetweenAndIsDeleteIsFalse(request.getStartTime(), request.getEndTime());
