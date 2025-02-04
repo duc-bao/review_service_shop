@@ -7,6 +7,7 @@ import com.ducbao.common.model.enums.StatusUserEnums;
 import com.ducbao.service_be.model.constant.AppConstants;
 import com.ducbao.service_be.model.dto.request.EmailRequest;
 import com.ducbao.service_be.model.dto.request.LoginRequest;
+import com.ducbao.service_be.model.dto.request.RegisterShopOwner;
 import com.ducbao.service_be.model.dto.request.ResgisterRequest;
 import com.ducbao.service_be.model.dto.response.LoginResponse;
 import com.ducbao.service_be.model.dto.response.UserInfoResponse;
@@ -141,7 +142,7 @@ public class AuthenticationService {
 
     }
 
-    public ResponseEntity<ResponseDto<Void>> registerWithShop(ResgisterRequest registerRequest) {
+    public ResponseEntity<ResponseDto<Void>> registerWithShop(RegisterShopOwner registerRequest) {
         UserModel userModel = commonMapper.map(registerRequest, UserModel.class);
         if (userRepository.existsByEmail(userModel.getEmail())) {
             return ResponseBuilder.badRequestResponse(

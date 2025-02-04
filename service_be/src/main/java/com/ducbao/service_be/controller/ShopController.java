@@ -159,9 +159,10 @@ public class ShopController {
                     """))}
             ),
     })
-    @PutMapping(value = "upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/upload-image-shop", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirements(value = {})
-    public ResponseEntity<ResponseDto<String>> uploadImageAvatar(@RequestPart("file") MultipartFile file, @RequestPart("email") String email) {
+    public ResponseEntity<ResponseDto<String>> uploadImageAvatar(@RequestParam("file") MultipartFile file, @RequestParam("email") String email) {
+        log.info(file.getOriginalFilename().toString());
         return shopService.uploadAvatar(file, email);
     }
 
@@ -181,7 +182,7 @@ public class ShopController {
                     """))}
             ),
     })
-    @PutMapping(value = "upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/upload-multiple-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirements(value = {})
     public ResponseEntity<ResponseDto<List<String>>> uploadMultiImageShop(@RequestPart("files") MultipartFile[] files, @RequestPart("email") String email) {
         return shopService.uploadMultipartFile(files, email);
