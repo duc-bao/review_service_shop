@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.LoginRequest;
+import com.ducbao.service_be.model.dto.request.RegisterShopOwner;
 import com.ducbao.service_be.model.dto.request.ResgisterRequest;
 import com.ducbao.service_be.model.dto.response.LoginResponse;
 import com.ducbao.service_be.model.dto.response.UserInfoResponse;
@@ -155,7 +156,7 @@ public class AuthenticationController {
             }
     )
     @PostMapping("/register/shop")
-    public ResponseEntity<ResponseDto<Void>> registerShop(@RequestBody ResgisterRequest resgisterRequest) {
+    public ResponseEntity<ResponseDto<Void>> registerShop(@RequestBody RegisterShopOwner resgisterRequest) {
         return authenticationService.registerWithShop(resgisterRequest);
     }
     @Operation(
