@@ -75,11 +75,13 @@ public class ShopSearchBaseModel {
     @Field(type = FieldType.Boolean)
     private boolean hasAnOwner;
 
-    @Field(type = FieldType.Date)
-    private LocalDateTime createdAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant createdAt;
 
-    @Field(type = FieldType.Date)
-    private LocalDateTime updatedAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant updatedAt;
 
     @Field(type = FieldType.Double)
     private double point;

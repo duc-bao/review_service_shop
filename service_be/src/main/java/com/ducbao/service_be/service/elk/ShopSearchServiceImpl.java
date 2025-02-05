@@ -137,12 +137,12 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             );
         }
 
-        FunctionScoreQuery.Builder functionQuery = new FunctionScoreQuery.Builder().query(boolQuery.build()._toQuery())
-                .functions(buildFuctionScore(shopSearchRequest));
+//        FunctionScoreQuery.Builder functionQuery = new FunctionScoreQuery.Builder().query(boolQuery.build()._toQuery())
+//                .functions(buildFuctionScore(shopSearchRequest));
 
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
                 .index("shop")
-                .query(functionQuery.build()._toQuery())
+                .query(boolQuery.build()._toQuery())
                 .from(shopSearchRequest.getPage() * shopSearchRequest.getSize())
                 .size(shopSearchRequest.getSize());
         if (shopSearchRequest.getSortField() != null && !shopSearchRequest.getSortField().isEmpty()) {
@@ -151,48 +151,48 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return searchRequestBuilder.build();
     }
 
-    private List<FunctionScore> buildFuctionScore(ShopSearchRequest shopSearchRequest) {
-        List<FunctionScore> functionScores = new ArrayList<>();
-        functionScores.add(
-                FunctionScore.of(
-                        f -> f.fieldValueFactor(
-                                fv -> fv.field("countReview")
-                                        .factor(1.0)
-                                        .modifier(FieldValueFactorModifier.Log1p)
-                                        .missing(0.0)
-                        )
-                )
-        );
+//    private List<FunctionScore> buildFuctionScore(ShopSearchRequest shopSearchRequest) {
+//        List<FunctionScore> functionScores = new ArrayList<>();
 //        functionScores.add(
 //                FunctionScore.of(
 //                        f -> f.fieldValueFactor(
-//                                fv -> fv.field("point")
-//                                        .factor(2.0)
+//                                fv -> fv.field("countReview")
+//                                        .factor(1.0)
 //                                        .modifier(FieldValueFactorModifier.Log1p)
 //                                        .missing(0.0)
 //                        )
 //                )
 //        );
-        if (isValidGeoSearch(shopSearchRequest)) {
-            functionScores.add(
-                    FunctionScore.of(f -> f.gauss(
-                                    g -> g.field("location").placement( builder -> builder
-                                            .origin(JsonData.of(
-                                                            shopSearchRequest.getLongitude() + "," + shopSearchRequest.getLatitude()))
-                                            .scale(JsonData.of("3km"))    // Distance where score starts to decay
-                                            .offset(JsonData.of("0km"))   // Perfect score within this distance
-                                            .decay(0.5)
-                            )
-                            ).weight(5.0)
-                    )
-            );
-        }
-        return functionScores;
-    }
+////        functionScores.add(
+////                FunctionScore.of(
+////                        f -> f.fieldValueFactor(
+////                                fv -> fv.field("point")
+////                                        .factor(2.0)
+////                                        .modifier(FieldValueFactorModifier.Log1p)
+////                                        .missing(0.0)
+////                        )
+////                )
+////        );
+//        if (isValidGeoSearch(shopSearchRequest)) {
+//            functionScores.add(
+//                    FunctionScore.of(f -> f.gauss(
+//                                    g -> g.field("location").placement( builder -> builder
+//                                            .origin(JsonData.of(
+//                                                            shopSearchRequest.getLongitude() + "," + shopSearchRequest.getLatitude()))
+//                                            .scale(JsonData.of("3km"))    // Distance where score starts to decay
+//                                            .offset(JsonData.of("0km"))   // Perfect score within this distance
+//                                            .decay(0.5)
+//                            )
+//                            ).weight(5.0)
+//                    )
+//            );
+//        }
+//        return functionScores;
+//    }
 
-    private boolean isValidGeoSearch(ShopSearchRequest shopSearchRequest) {
-        return shopSearchRequest.getLatitude() != null && shopSearchRequest.getLongitude() != null && shopSearchRequest.getDistance() != null;
-    }
+//    private boolean isValidGeoSearch(ShopSearchRequest shopSearchRequest) {
+//        return shopSearchRequest.getLatitude() != null && shopSearchRequest.getLongitude() != null && shopSearchRequest.getDistance() != null;
+//    }
     private void addSort(SearchRequest.Builder searchRequestBuilder, ShopSearchRequest shopSearchRequest) {
         try {
             switch (shopSearchRequest.getSortField()) {
@@ -395,8 +395,8 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                 .ward(shopModel.getWard())
                 .district(shopModel.getDistrict())
                 .hasAnOwner(shopModel.isHasAnOwner())
-                .createdAt(LocalDateTime.ofInstant(shopModel.getCreatedAt(), ZoneId.systemDefault()))
-                .updatedAt(LocalDateTime.ofInstant(shopModel.getUpdatedAt(), ZoneId.systemDefault()))
+                .createdAt(shopModel.getCreatedAt())  // Giữ nguyên kiểu Instant
+                .updatedAt(shopModel.getUpdatedAt())
                 .point(shopModel.getPoint())
                 .statusShopEnums(shopModel.getStatusShopEnums())
                 .stateServiceEnums(shopModel.getStateServiceEnums())
@@ -424,6 +424,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                 .description(categoryModel.getDescription())
                 .idParent(categoryModel.getParentId())
                 .isDelete(categoryModel.isDelete())
+                .tags(categoryModel.getTags())
                 .build();
     }
 
