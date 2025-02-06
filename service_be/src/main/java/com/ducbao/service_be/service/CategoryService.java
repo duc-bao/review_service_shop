@@ -322,6 +322,19 @@ public class CategoryService {
         );
     }
 
+    public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllParent(){
+//        Pageable pageable = PageRequest.of(pagePanigationRequest.getPage(), pagePanigationRequest.getLimit());
+//        Page<CategoryModel> categoryModels = categoryRepository.findAllByParentIdIsEmpty();
+        List<CategoryModel> categoryModels1 = categoryRepository.findAllByParentIdIsNull();
+        List<CategoryResponse> categoryResponses = categoryModels1.stream()
+                .map(categoryModel -> mapper.map(categoryModel, CategoryResponse.class)).collect(Collectors.toList());
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách thể loại cha thành công",
+                categoryResponses,
+                StatusCodeEnum.CATEGORY1000
+        );
+    }
+
     public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategory(String id) {
         CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
         if (categoryModel == null) {

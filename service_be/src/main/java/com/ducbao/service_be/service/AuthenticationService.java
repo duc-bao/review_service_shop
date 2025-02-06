@@ -208,7 +208,7 @@ public class AuthenticationService {
 
         userModel.setStatusUserEnums(StatusUserEnums.ACTIVE);
         userRepository.save(userModel);
-        return ResponseBuilder.badRequestResponse(
+        return ResponseBuilder.okResponse(
                 "Kích hoạt tài khoản thành công",
                 commonMapper.map(userModel, UserInfoResponse.class),
                 StatusCodeEnum.USER1003
