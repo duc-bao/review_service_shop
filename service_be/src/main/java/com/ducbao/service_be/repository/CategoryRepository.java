@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface CategoryRepository extends MongoRepository<CategoryModel, String> {
@@ -18,4 +19,5 @@ public interface CategoryRepository extends MongoRepository<CategoryModel, Strin
     boolean existsByName(String name);
 
     int countByCreatedAtBetweenAndIsDeleteIsFalse(LocalDateTime from, LocalDateTime to);
+    List<CategoryModel> findAllByParentIdIsNull();
 }

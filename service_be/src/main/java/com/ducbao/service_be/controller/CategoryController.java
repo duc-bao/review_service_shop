@@ -34,8 +34,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @Operation(
-            summary = "Lấy danh sách danh mục ",
-            description = "Api Lấy danh sách danh mục ",
+            summary = "Lấy danh sách danh mục cha",
+            description = "Api Lấy danh sách danh mục cha ",
             tags = {"USERS:CAT"},
             parameters = {
                     @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
@@ -126,13 +126,13 @@ public class CategoryController {
     })
     @GetMapping("")
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCategories(
-            @RequestParam(value = "sort", defaultValue = "id") String sort,
-            @RequestParam(value = "limit", defaultValue = "12") int limit,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "q", required = false) String q,
-            @RequestParam(value = "filter", required = false) String filter
+//            @RequestParam(value = "sort", defaultValue = "id") String sort,
+//            @RequestParam(value = "limit", defaultValue = "12") int limit,
+//            @RequestParam(value = "page", defaultValue = "1") int page,
+//            @RequestParam(value = "q", required = false) String q,
+//            @RequestParam(value = "filter", required = false) String filter
     ) {
-        return categoryService.getAll(sort, q, filter, limit, page);
+    return categoryService.getAllParent();
     }
 
     @Operation(
