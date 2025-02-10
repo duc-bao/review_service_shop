@@ -3,6 +3,8 @@ package com.ducbao.service_be.model.dto.response;
 import com.ducbao.common.model.enums.StatusUserEnums;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UserInfoResponse {
     private String username;
@@ -13,4 +15,5 @@ public class UserInfoResponse {
 
     private String lastName;
     private StatusUserEnums statusUserEnums;
+    private List<String> role;
 }

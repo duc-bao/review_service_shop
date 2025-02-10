@@ -34,5 +34,6 @@ public interface ShopRepository extends MongoRepository<ShopModel, String> {
             Pageable pageable
     );
 
+
     int countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 }

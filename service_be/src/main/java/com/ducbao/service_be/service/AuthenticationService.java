@@ -79,7 +79,7 @@ public class AuthenticationService {
         }catch (AuthenticationException e){
             log.error("Error Login() - {}", e.getMessage());
             return ResponseBuilder.badRequestResponse(
-                    "Tên đăng nhập hoặc mật khẩu không chính xác",
+                    "Xảy ra lỗi đăng nhập khi mật khẩu hoặc tên đăng nhập không chính xác",
                     null,
                     StatusCodeEnum.LOGIN1001
             );
@@ -164,11 +164,12 @@ public class AuthenticationService {
                     StatusCodeEnum.LOGIN1004
             );
         }
-
+        userModel.setUsername(registerRequest.getEmail());
         userModel.setActiveCode(activationCode());
         userModel.setStatusUserEnums(StatusUserEnums.DEACTIVE);
         String endecodePassword = passwordEncoder.encode(userModel.getPassword());
         userModel.setPassword(endecodePassword);
+        userModel.setRole(List.of("User"));
 //        userModel.setRole(List.of("OWNER"));
 //        EmailRequest emailRequest = EmailRequest.builder()
 //                .channel("email")

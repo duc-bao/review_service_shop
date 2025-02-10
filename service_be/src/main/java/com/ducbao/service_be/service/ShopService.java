@@ -28,6 +28,9 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +55,7 @@ public class ShopService {
     private final ReviewRepository reviewRepository;
     private final CategoryRepository categoryRepository;
     private final ElasticsearchOperations elasticsearchOperations;
-
+    private final MongoTemplate mongoTemplate;
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
 //        String idUser = userService.userId();
@@ -683,6 +686,56 @@ public class ShopService {
                 reviewResponses,
                 metaData,
                 StatusCodeEnum.SHOP1000
+        );
+    }
+
+    /**
+     * Get list service
+     * @Param panigationRequest
+     * @return list ServiceResponse
+     * */
+
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListService(PanigationRequest panigationRequest){
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if(shopModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tồn tại cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "createAt");
+        if (panigationRequest.getSort() != null){
+            String sortField = panigationRequest.getSort().replace("-", "");
+            Sort.Direction direction = panigationRequest.getSort().startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            sort = Sort.by(direction, sortField);
+        }
+        Pageable pageable = PageRequest.of(panigationRequest.getPage(), panigationRequest.getLimit(),sort);
+        Criteria criteria = Criteria.where("idShop").is(shopModel.getId());
+
+        if (panigationRequest.getKeyword() != null && !panigationRequest.getKeyword().trim().isEmpty()) {
+            criteria = criteria.and("name").regex(panigationRequest.getKeyword(), "i");
+        }
+
+        Query query = new Query(criteria).with(pageable);
+        List<ServiceModel> services = mongoTemplate.find(query, ServiceModel.class);
+        long totalElements = mongoTemplate.count(query.skip(0).limit(0), ServiceModel.class);
+
+        List<ServiceResponse> serviceResponses = services.stream()
+                .map(serviceModel ->  mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .total(totalElements)  // Tổng số bản ghi từ MongoDB
+                .totalPage((int) Math.ceil((double) totalElements / panigationRequest.getLimit()))
+                .currentPage(panigationRequest.getPage())
+                .pageSize(panigationRequest.getLimit())
+                .build();
+
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách dịch vụ theo cửa hàng thành công",
+                serviceResponses,
+                metaData,
+                StatusCodeEnum.SERVICE1000
         );
     }
 
