@@ -46,4 +46,6 @@ public class UserResponse {
     private int helpful;
 
     private int like;
+
+    private StatusUserEnums statusUserEnums;
 }
