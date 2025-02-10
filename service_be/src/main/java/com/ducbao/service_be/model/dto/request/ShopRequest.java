@@ -10,6 +10,7 @@ import java.util.List;
 
 @Data
 public class ShopRequest {
+    @NotNull
     private String name;
 
     @NotNull

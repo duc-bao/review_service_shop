@@ -148,12 +148,12 @@ public class ShopOwnerController {
     }
 
     @Operation(
-            summary = "Cập nhật thời gian của cửa hàng",
-            description = "Api Cập nhật thời gian của cửa hàng",
+            summary = "Cập nhật thời gian hoạt động của cửa hàng",
+            description = "Api Cập nhật thời gian hoạt động của cửa hàng",
             tags = {"OWNER:SHOPS"})
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "SHOP1005", description = "Cập nhật thời gian của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                    responseCode = "SHOP1005", description = "Cập nhật thời gian hoạt động của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
                      {
                           "success": true,
                           "message": "Cập nhật thời gian hoạt động của cửa hàng thành công",
@@ -185,6 +185,7 @@ public class ShopOwnerController {
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests, @PathVariable("id") String id) {
         return shopService.updateOpenTime(openTimeRequests, id);
     }
+
 
     @Operation(
             summary = "Cập nhật dịch vụ với từng cửa hàng",
@@ -402,4 +403,47 @@ public class ShopOwnerController {
     public ResponseEntity<ResponseDto<List<ReviewResponse>>> getListReview(@RequestBody ShopReviewRequest shopReviewRequest) {
         return shopService.getReviewByShop(shopReviewRequest);
     }
+
+    @Operation(
+            summary = "Lấy danh sách dịch vụ của cửa hàng đó",
+            description = "Api Lấy danh sách dịch vụ của cửa hàng đó",
+            tags = {"OWNER:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách dịch vụ của cửa hàng đó", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách dịch vụ của cửa hàng đó thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/get-list-service")
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListService(@RequestBody PanigationRequest request){
+        return shopService.getListService(request);
+    }
+
 }
