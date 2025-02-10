@@ -62,8 +62,8 @@ public class ShopCmsController {
                     """))}
             ),
     })
-    @PutMapping("/active-shop")
-    public ResponseEntity<ResponseDto<ShopResponse>> activateShop(@RequestParam String idShop) {
+    @PutMapping("/active-shop/{id}")
+    public ResponseEntity<ResponseDto<ShopResponse>> activateShop(@PathVariable(value = "id") String idShop) {
         return shopService.activeShop(idShop);
     }
 
