@@ -151,12 +151,12 @@ public class AuthenticationService {
             );
         }
 
-        if (userRepository.existsByUsername(userModel.getUsername())) {
-            return ResponseBuilder.badRequestResponse(
-                    "Username đã tồn tại",
-                    StatusCodeEnum.LOGIN1003
-            );
-        }
+//        if (userRepository.existsByUsername(userModel.getUsername())) {
+//            return ResponseBuilder.badRequestResponse(
+//                    "Username đã tồn tại",
+//                    StatusCodeEnum.LOGIN1003
+//            );
+//        }
 
         if (userRepository.existsByPhone(userModel.getPhone())) {
             return ResponseBuilder.badRequestResponse(

@@ -2,6 +2,7 @@ package com.ducbao.common.model.entity;
 
 import com.ducbao.common.model.enums.CategoryEnums;
 import com.ducbao.common.model.enums.StateServiceEnums;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,5 +41,6 @@ public class ServiceSearchBaseModel {
     private double price;
 
     @Field(type = FieldType.Boolean)
+    @JsonProperty("isDelete")
     private boolean isDelete;
 }
