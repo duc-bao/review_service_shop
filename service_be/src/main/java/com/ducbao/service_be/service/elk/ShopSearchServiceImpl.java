@@ -12,6 +12,7 @@ import com.ducbao.common.model.entity.*;
 import com.ducbao.common.model.enums.SortOrderEnums;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.dto.request.ShopSearchRequest;
+import com.ducbao.service_be.model.dto.request.ShopSuggestRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
 import com.ducbao.service_be.model.dto.response.ServiceResponse;
@@ -82,8 +83,12 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
+//
+//    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> suggestShopService(ShopSuggestRequest request) {
+//        FunctionScore functionScore =buildShopQuery();
+//    }
+
 
     private List<ShopSearchResponse> extractShopSearchResult(List<ShopSearchModel> shopSearchResponseList) {
         List<ShopSearchResponse> shopSearchResponses = new ArrayList<>();
