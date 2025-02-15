@@ -12,6 +12,7 @@ import com.ducbao.common.model.entity.*;
 import com.ducbao.common.model.enums.SortOrderEnums;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.dto.request.ShopSearchRequest;
+import com.ducbao.service_be.model.dto.request.ShopSuggestRequest;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.model.dto.response.OpenTimeResponse;
 import com.ducbao.service_be.model.dto.response.ServiceResponse;
@@ -82,8 +83,12 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
+//
+//    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> suggestShopService(ShopSuggestRequest request) {
+//        FunctionScore functionScore =buildShopQuery();
+//    }
+
 
     private List<ShopSearchResponse> extractShopSearchResult(List<ShopSearchModel> shopSearchResponseList) {
         List<ShopSearchResponse> shopSearchResponses = new ArrayList<>();
@@ -137,9 +142,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             );
         }
 
-//        FunctionScoreQuery.Builder functionQuery = new FunctionScoreQuery.Builder().query(boolQuery.build()._toQuery())
-//                .functions(buildFuctionScore(shopSearchRequest));
-
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
                 .index("shop")
                 .query(boolQuery.build()._toQuery())
@@ -151,48 +153,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return searchRequestBuilder.build();
     }
 
-//    private List<FunctionScore> buildFuctionScore(ShopSearchRequest shopSearchRequest) {
-//        List<FunctionScore> functionScores = new ArrayList<>();
-//        functionScores.add(
-//                FunctionScore.of(
-//                        f -> f.fieldValueFactor(
-//                                fv -> fv.field("countReview")
-//                                        .factor(1.0)
-//                                        .modifier(FieldValueFactorModifier.Log1p)
-//                                        .missing(0.0)
-//                        )
-//                )
-//        );
-////        functionScores.add(
-////                FunctionScore.of(
-////                        f -> f.fieldValueFactor(
-////                                fv -> fv.field("point")
-////                                        .factor(2.0)
-////                                        .modifier(FieldValueFactorModifier.Log1p)
-////                                        .missing(0.0)
-////                        )
-////                )
-////        );
-//        if (isValidGeoSearch(shopSearchRequest)) {
-//            functionScores.add(
-//                    FunctionScore.of(f -> f.gauss(
-//                                    g -> g.field("location").placement( builder -> builder
-//                                            .origin(JsonData.of(
-//                                                            shopSearchRequest.getLongitude() + "," + shopSearchRequest.getLatitude()))
-//                                            .scale(JsonData.of("3km"))    // Distance where score starts to decay
-//                                            .offset(JsonData.of("0km"))   // Perfect score within this distance
-//                                            .decay(0.5)
-//                            )
-//                            ).weight(5.0)
-//                    )
-//            );
-//        }
-//        return functionScores;
-//    }
-
-//    private boolean isValidGeoSearch(ShopSearchRequest shopSearchRequest) {
-//        return shopSearchRequest.getLatitude() != null && shopSearchRequest.getLongitude() != null && shopSearchRequest.getDistance() != null;
-//    }
     private void addSort(SearchRequest.Builder searchRequestBuilder, ShopSearchRequest shopSearchRequest) {
         try {
             switch (shopSearchRequest.getSortField()) {
@@ -204,14 +164,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                             )
                     );
                     break;
-//                case "point":
-//                    searchRequestBuilder.sort(s -> s
-//                            .field(f -> f
-//                                    .field("point")
-//                                    .order(getSortOrder(shopSearchRequest.getSortOrderEnums()))
-//                            )
-//                    );
-//                    break;
                 case "createdAt":
                     searchRequestBuilder.sort(s -> s
                             .field(f -> f
@@ -234,7 +186,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             }
         } catch (Exception e) {
             log.error("Error adding sort to search request", e);
-            // Optionally add a default sort
         }
     }
 
@@ -265,7 +216,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             addListFilter(boolQuery, "openTimeSearchBaseModels.openTime", openTimes);
         }
 
-        // Filter by city and district
         if (shopSearchRequest.getCity() != null) {
             addListFilter(boolQuery, "city", List.of(shopSearchRequest.getCity()));
         }
@@ -276,7 +226,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         if (shopSearchRequest.getScoreReview() != null) {
             addRangeFilter(boolQuery, "point", shopSearchRequest.getScoreReview());
         }
-        // Filter by review score range
         return boolQuery;
     }
 
@@ -312,46 +261,27 @@ public class ShopSearchServiceImpl implements ShopSearchService {
      * @Param keyword
      * */
     private Query buildKeywordSearch(String keyword) {
-        NestedQuery categorySearchNested = NestedQuery.of(
+        Query categorySearchNested = NestedQuery.of(
                 n -> n.path("categorySearchBaseModel")
                         .query(
-                                q ->  q.term(
-                                        t -> t.field("categorySearchBaseModel.name").value(keyword)
-                                )
-                        ).boost(0.3f)
-        );
-
-//        NestedQuery serviceNested = NestedQuery.of(
-//                n -> n.path("serviceSearchBaseModels")
-//                        .query(q -> q.match(
-//                                m -> m
-//                                        .field("serviceSearchBaseModels.name")
-//                                        .query(keyword)
-//                                        .operator(Operator.Or)
-//                                        .fuzziness("AUTO")
-//                        )).boost(0.2f)
-//        );
-
-        MultiMatchQuery multiMatchQuery = MultiMatchQuery.of(
+                                q -> q.match(
+                                        m -> m.field("categorySearchBaseModel.name")
+                                                .query(keyword)
+                                                .fuzziness("AUTO")  // Cho phép tìm kiếm mờ
+                                                .operator(Operator.Or)  // Tìm kiếm theo từ khóa
+                                )// Tăng trọng số cho trường này
+                        ))._toQuery();
+        Query multiMatchQuery = MultiMatchQuery.of(
                 m -> m.fields(listFieldKey)
                         .query(keyword)
                         .operator(Operator.Or)
-                            .fuzziness("AUTO")
                         .type(TextQueryType.BestFields)
                         .tieBreaker(0.3)
-                        .fields(List.of(
-                                "name^3",
-                                "description^2"
-                        ))
-        );
-        return DisMaxQuery.of(
-                d -> d.queries(
-                        multiMatchQuery._toQuery(),
-                        categorySearchNested._toQuery()
-//                        serviceNested._toQuery()
-                ).tieBreaker(0.3)
         )._toQuery();
+
+        return BoolQuery.of(b -> b.should(categorySearchNested, multiMatchQuery))._toQuery();
     }
+
     /**
      * Handles migrate data to mongodb to Elasticsearch
      * *
