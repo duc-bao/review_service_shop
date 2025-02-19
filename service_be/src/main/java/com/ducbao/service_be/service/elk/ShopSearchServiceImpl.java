@@ -286,23 +286,23 @@ public class ShopSearchServiceImpl implements ShopSearchService {
      * Handles migrate data to mongodb to Elasticsearch
      * *
      */
-    @PostConstruct
-    public void migrateShopsToElasticsearch() {
-        // Fetch all shops from the database
-        List<ShopModel> shopServices = shopRepository.findAll();
-
-        // Prepare a list to store Elasticsearch documents
-        List<ShopSearchBaseModel> searchModels = new ArrayList<>();
-
-        // Convert database entities to Elasticsearch search models
-        for (ShopModel shopModel : shopServices) {
-            ShopSearchBaseModel searchModel = convertToSearchModel(shopModel);
-            searchModels.add(searchModel);
-        }
-
-        // Bulk index documents to Elasticsearch
-        bulkIndexShops(searchModels);
-    }
+//    @PostConstruct
+//    public void migrateShopsToElasticsearch() {
+//        // Fetch all shops from the database
+//        List<ShopModel> shopServices = shopRepository.findAll();
+//
+//        // Prepare a list to store Elasticsearch documents
+//        List<ShopSearchBaseModel> searchModels = new ArrayList<>();
+//
+//        // Convert database entities to Elasticsearch search models
+//        for (ShopModel shopModel : shopServices) {
+//            ShopSearchBaseModel searchModel = convertToSearchModel(shopModel);
+//            searchModels.add(searchModel);
+//        }
+//
+//        // Bulk index documents to Elasticsearch
+//        bulkIndexShops(searchModels);
+//    }
 
     private ShopSearchModel convertToSearchModel(ShopModel shopModel) {
         return ShopSearchModel.builder()

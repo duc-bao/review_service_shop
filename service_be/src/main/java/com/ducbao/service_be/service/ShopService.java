@@ -112,12 +112,12 @@ public class ShopService {
                     StatusCodeEnum.SHOP1003
             );
         }
-        List<String> mediaUrls = shopModel.getMediaUrls();
-        if (mediaUrls != null && mediaUrls.size() > 0) {
-            mediaUrls.addAll(shopRequest.getMediaUrls());
+        if (shopRequest.getMediaUrls() != null && !shopRequest.getMediaUrls().isEmpty()) {
+            List<String> updatedMediaUrls = new ArrayList<>(shopModel.getMediaUrls()); // Giữ ảnh cũ
+            updatedMediaUrls.addAll(shopRequest.getMediaUrls()); // Thêm ảnh mới vào danh sách
+            shopModel.setMediaUrls(updatedMediaUrls);
         }
-        shopModel.setMediaUrls(mediaUrls);
-        shopModel = mapper.map(shopRequest, ShopModel.class);
+        mapper.maptoObject(shopRequest, shopModel);
         try {
             shopModel = shopRepository.save(shopModel);
             return ResponseBuilder.okResponse(
@@ -133,8 +133,9 @@ public class ShopService {
         }
     }
 
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(List<OpenTimeRequest> listOpenTimeRequest, String idShop) {
-        ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(List<OpenTimeRequest> listOpenTimeRequest) {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
         if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng",
@@ -211,7 +212,31 @@ public class ShopService {
                 StatusCodeEnum.SHOP1006
         );
     }
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTimeByShop() {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Cửa hàng không tồn tại",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
 
+        List<String> idOpenTime = shopModel.getListIdOpenTime();
+        List<OpenTimeModel> updateOpenTime = new ArrayList<>();
+        for (String id : idOpenTime) {
+            OpenTimeModel openTimeModel = openTimeRepository.findById(id).orElse(null);
+            updateOpenTime.add(openTimeModel);
+        }
+        updateOpenTime.sort((o1, o2) -> o1.getDayOfWeekEnum().ordinal() - o2.getDayOfWeekEnum().ordinal());
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách thời gian của cửa hàng thành công",
+                updateOpenTime.stream().map(
+                        updateOpenTimes -> mapper.map(updateOpenTimes, OpenTimeResponse.class)
+                ).collect(Collectors.toList()),
+                StatusCodeEnum.SHOP1006
+        );
+    }
     public ResponseEntity<ResponseDto<ShopResponse>> activeShop(String id) {
         ShopModel shopModel = shopRepository.findById(id).orElse(null);
         if (shopModel == null) {
@@ -321,6 +346,35 @@ public class ShopService {
                 shopGetResponse,
                 StatusCodeEnum.SHOP1004
         );
+    }
+
+    public ResponseEntity<ResponseDto<ShopGetResponse>> getShop() {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if(shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thâ cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        try {
+            ShopGetResponse shopResponse = mapper.map(shopModel, ShopGetResponse.class);
+            List<OpenTimeModel> openTimeModels = openTimeRepository.findAllById(shopModel.getListIdOpenTime());
+            List<OpenTimeResponse> openTimeResponses = openTimeModels.stream()
+                    .map(openTimeModel -> mapper.map(openTimeModel, OpenTimeResponse.class)).collect(Collectors.toList());
+            shopResponse.setListOpenTimes(openTimeResponses);
+            return ResponseBuilder.okResponse(
+                    "Lấy thông tin cửa hàng thành công",
+                    shopResponse,
+                    StatusCodeEnum.SHOP1004
+            );
+        }catch (Exception e) {
+            log.error("Error getShop() - {}", e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Xảy ra lỗi khi lấy thông tin cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
     }
 
 //    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile[] files) {
@@ -659,9 +713,10 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getReviewByShop(ShopReviewRequest request) {
+    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getReviewByShop(PanigationRequest request) {
+        log.info("getReviewByShop() - request={}", request);
         String idUser = userService.userId();
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getLimit(), Sort.by("createdAt").descending());
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
         if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
@@ -680,7 +735,7 @@ public class ShopService {
                 .total(reviewModelPage.getTotalPages())
                 .totalPage(reviewModelPage.getTotalPages())
                 .currentPage(request.getPage())
-                .pageSize(request.getSize())
+                .pageSize(request.getLimit())
                 .build();
         return ResponseBuilder.okResponse(
                 "Lấy danh sách đánh giá theo cửa hàng thành công",

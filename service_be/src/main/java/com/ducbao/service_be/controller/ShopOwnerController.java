@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -62,16 +63,54 @@ public class ShopOwnerController {
         return shopService.updateShop(shopRequest);
     }
 
+//    @Operation(
+//            summary = "Lấy thông tin cửa hàng với id",
+//            description = "Api Lấy thông tin cửa hàng với id ",
+//            tags = {"OWNER:SHOPS"})
+//    @ApiResponses({
+//            @ApiResponse(
+//                    responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
+//                     {
+//                          "success": true,
+//                          "message": "Lấy thông tin cửa hàng theo id thành công",
+//                          "data": {
+//                                 "id": "670d0668c50bc3586429fdc1",
+//                                 "name": "Nhà hàng của Bảo",
+//                                 "avatar": "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+//                                 "email": "truongducbao2904@gmail.com",
+//                                 "mediaUrls": [
+//                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg",
+//                                     "http://res.cloudinary.com/dbk09oy6h/image/upload/v1728836118/IMAGE_USER/6704f957a77f0442b1e32a23/1728836117285.jpg.jpg"
+//                                 ],
+//                                 "description": "Nhà hàng món ăn hàng đầu về chất lượng",
+//                                 "urlWebsite": "https://quannhautudo.com/bai-viet/quan-nhau-chill-ha-noi-163.htm",
+//                                 "statusShopEnums": "ACTIVE",
+//                                 "very": true,
+//                                 "listIdOpenTime": [
+//                                       "670d04f24e531645e73f8984",
+//                                       "670d04f24e531645e73f8985",
+//                                       "670d04f24e531645e73f8986"
+//                                 ],
+//                          },
+//                          statusCode: "SHOP1000"
+//                      }
+//                    """))}
+//            ),
+//    })
+//    @GetMapping("/{id}")
+//    public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(@PathVariable("id") String id) {
+//        return shopService.getShopById(id);
+//    }
     @Operation(
-            summary = "Lấy thông tin cửa hàng với id",
-            description = "Api Lấy thông tin cửa hàng với id ",
+            summary = "Lấy thông tin cửa hàng ",
+            description = "Api Lấy thông tin cửa hàng",
             tags = {"OWNER:SHOPS"})
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng với id", content = {@Content(examples = @ExampleObject(value = """
+                    responseCode = "SHOP1000", description = "Lấy thông tin cửa hàng ", content = {@Content(examples = @ExampleObject(value = """
                      {
                           "success": true,
-                          "message": "Lấy thông tin cửa hàng theo id thành công",
+                          "message": "Lấy thông tin cửa hàng thành công",
                           "data": {
                                  "id": "670d0668c50bc3586429fdc1",
                                  "name": "Nhà hàng của Bảo",
@@ -91,16 +130,15 @@ public class ShopOwnerController {
                                        "670d04f24e531645e73f8986"
                                  ],
                           },
-                          statusCode: "SHOP1000"
+                          statusCode: "SHOP1004"
                       }
                     """))}
             ),
     })
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById(@PathVariable("id") String id) {
-        return shopService.getShopById(id);
+    @GetMapping("/get-shop")
+    public ResponseEntity<ResponseDto<ShopGetResponse>> getShopById() {
+        return shopService.getShop();
     }
-
     @Operation(
             summary = "Tạo dịch vụ với từng cửa hàng",
             description = "Api Tạo dịch vụ với từng cửa hàng ",
@@ -181,9 +219,9 @@ public class ShopOwnerController {
                     """))}
             ),
     })
-    @PutMapping("/update-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests, @PathVariable("id") String id) {
-        return shopService.updateOpenTime(openTimeRequests, id);
+    @PutMapping("/update-open-time")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests) {
+        return shopService.updateOpenTime(openTimeRequests);
     }
 
 
@@ -223,7 +261,7 @@ public class ShopOwnerController {
                     """))}
             ),
     })
-    @PutMapping("/update-service/{id}")
+    @PutMapping("/update-service")
     public ResponseEntity<ResponseDto<ServiceResponse>> updateService(@RequestBody ServiceRequest serviceRequest, @PathVariable String id) {
         return shopService.updateService(serviceRequest, id);
     }
@@ -330,36 +368,29 @@ public class ShopOwnerController {
                      {
                           "success": true,
                           "message": "Lấy danh sách thời gian của cửa hàng thành công",
-                          "data": {
-                             "id": "6718c25e43333b7137e625f9",
-                             "idShop": "6718c19c43333b7137e625f8",
-                             "name": "CSCCS",
-                             "type": null,
-                             "description": "nhà hàng àlsclslcslcs",
-                             "thumbnail": "âcsccscs",
-                             "mediaUrl": [
-                                "accccccaaa"
-                             ],
-                             "idCategory": null,
-                             "city": "HCM",
-                             "ward": "Quận 1",
-                             "district": "Phong vũ",
-                             "countReview": 10,
-                             "longitude": 10,
-                             "latitude": 10,
-                             "point": 10,
-                             "price": 5000000
-                          },
-                          "statusCode": "SERVICE1000",
-                          "meta": null
-                          },
+                          "data": [
+                              {
+                                 "id": "67b599fe08456431f4b06e8c",
+                                 "dayOfWeekEnum": "MONDAY",
+                                 "openTime": "11:00 AM",
+                                 "closeTime": "12:00 PM",
+                                 "dayOff": true
+                             },
+                             {
+                                 "id": "67b599fe08456431f4b06e8d",
+                                 "dayOfWeekEnum": "SUNDAY",
+                                 "openTime": "09:00 AM",
+                                 "closeTime": "08:00 PM",
+                                 "dayOff": false
+                             }
+                          ],
                       }
                     """))}
             ),
     })
-    @GetMapping("/get-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id) {
-        return shopService.getListOpenTime(id);
+    @GetMapping("/get-open-time")
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime() {
+        return shopService.getListOpenTimeByShop();
     }
 
     @Operation(
@@ -400,8 +431,8 @@ public class ShopOwnerController {
             ),
     })
     @PostMapping("/get-review")
-    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getListReview(@RequestBody ShopReviewRequest shopReviewRequest) {
-        return shopService.getReviewByShop(shopReviewRequest);
+    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getListReview(@RequestBody PanigationRequest request) {
+        return shopService.getReviewByShop(request);
     }
 
     @Operation(
