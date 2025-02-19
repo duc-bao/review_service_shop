@@ -29,7 +29,7 @@ public class ShopCmsController {
     private final ShopService shopService;
     private final UserService userService;
     @Operation(
-            summary = "Kích hoạt cửa hàng",
+            summary = "Kích hoạt cửa hàng111",
             description = "Api Kích hoạt cửa hàng ",
             tags = {"ADMIN:SHOPS"})
     @ApiResponses({

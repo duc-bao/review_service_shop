@@ -324,7 +324,8 @@ public class ShopService {
     }
 
 //    public ResponseEntity<ResponseDto<List<String>>> uploadMultiFile(MultipartFile[] files) {
-////        String idUser = userService.userId();
+
+    /// /        String idUser = userService.userId();
 //        String idUser = "123";
 //        List<String> mediaUrls = new ArrayList<>();
 //
@@ -349,10 +350,9 @@ public class ShopService {
 //                StatusCodeEnum.SHOP1002
 //        );
 //    }
-
-    public ResponseEntity<ResponseDto<List<String>>> uploadMultipartFile(MultipartFile[] files, String email){
+    public ResponseEntity<ResponseDto<List<String>>> uploadMultipartFile(MultipartFile[] files, String email) {
         UserModel userModel = userRepository.findByEmail(email).orElse(null);
-        if(userModel == null){
+        if (userModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy tài khoản",
                     StatusCodeEnum.USER1002
@@ -361,7 +361,7 @@ public class ShopService {
 
         List<String> mediaUrls = new ArrayList<>();
         for (MultipartFile file : files) {
-           String url =  fileService.upload(file, userModel.getId(), FileConstant.IMAGE_SHOP);
+            String url = fileService.upload(file, userModel.getId(), FileConstant.IMAGE_SHOP);
             mediaUrls.add(url);
         }
         return ResponseBuilder.okResponse(
@@ -372,13 +372,13 @@ public class ShopService {
     }
 
     public ResponseEntity<ResponseDto<String>> uploadAvatar(MultipartFile file, String email) {
-       UserModel userModel = userRepository.findByEmail(email).orElse(null);
-       if(userModel == null){
-           return ResponseBuilder.badRequestResponse(
-                   "Không tìm thấy user",
-                   StatusCodeEnum.USER1002
-           );
-       }
+        UserModel userModel = userRepository.findByEmail(email).orElse(null);
+        if (userModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy user",
+                    StatusCodeEnum.USER1002
+            );
+        }
         String url = fileService.upload(file, userModel.getId(), FileConstant.IMAGE_SHOP);
         return ResponseBuilder.okResponse(
                 "Tải ảnh lên thành công",
@@ -386,6 +386,7 @@ public class ShopService {
                 StatusCodeEnum.SHOP1002
         );
     }
+
     public ResponseEntity<ResponseDto<ServiceResponse>> createService(ServiceRequest serviceRequest) {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
@@ -626,7 +627,7 @@ public class ShopService {
                         StatusShopEnums.DEACTIVE.toString();
 
         String keyword = request.getKeyword() != null ? request.getKeyword() : "";
-        Page<ShopModel> shopModelList = shopRepository.findShopsByCriteria(keyword,status , pageable);
+        Page<ShopModel> shopModelList = shopRepository.findShopsByCriteria(keyword, status, pageable);
         List<ShopModel> shopModels = shopModelList.getContent();
         List<ShopResponse> shopResponses = shopModels.stream().map(
                 shopModel -> mapper.map(shopModel, ShopResponse.class)
@@ -647,7 +648,7 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<CountResponse>> getTotalShop(ShopTotalRequest request){
+    public ResponseEntity<ResponseDto<CountResponse>> getTotalShop(ShopTotalRequest request) {
         int total = shopRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
         return ResponseBuilder.okResponse(
                 "Tổng số cửa hàng theo thời gian",
@@ -658,11 +659,11 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getReviewByShop(ShopReviewRequest request){
+    public ResponseEntity<ResponseDto<List<ReviewResponse>>> getReviewByShop(ShopReviewRequest request) {
         String idUser = userService.userId();
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
-        if(shopModel == null){
+        if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng hiện tại",
                     StatusCodeEnum.SHOP1003
