@@ -5,10 +5,7 @@ import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.model.enums.StatusUserEnums;
 import com.ducbao.service_be.model.constant.AppConstants;
-import com.ducbao.service_be.model.dto.request.EmailRequest;
-import com.ducbao.service_be.model.dto.request.LoginRequest;
-import com.ducbao.service_be.model.dto.request.RegisterShopOwner;
-import com.ducbao.service_be.model.dto.request.ResgisterRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.LoginResponse;
 import com.ducbao.service_be.model.dto.response.UserInfoResponse;
 import com.ducbao.service_be.model.entity.UserModel;
@@ -16,6 +13,9 @@ import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +41,7 @@ public class AuthenticationService {
     private final CommonMapper commonMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final RedissonClient redisson;
 
     public ResponseEntity<ResponseDto<LoginResponse>> login(LoginRequest loginRequest) {
         try {
@@ -249,5 +250,35 @@ public class AuthenticationService {
     // Tạo mã kích hoạt
     private String activationCode() {
         return UUID.randomUUID().toString();
+    }
+
+
+    /**
+     * Logout account in redis
+     * */
+    public ResponseEntity<ResponseDto<Void>> logout(LogoutRequest request) {
+        try {
+            // Kiểm tra token có tồn tại trong Redis hay không
+            RBucket<String> tokenBucket = redisson.getBucket(request.getToken());
+            if(!tokenBucket.isExists()){
+                log.error("Token not found");
+                return ResponseBuilder.badRequestResponse(
+                        "Token not found in Redis",
+                        StatusCodeEnum.USER1004
+                );
+            }
+
+            tokenBucket.delete();
+            return ResponseBuilder.okResponse(
+                    "Đăng xuất tài khoản thành công",
+                    StatusCodeEnum.USER1000
+            );
+        }catch (Exception e){
+            log.error("Logout account failed - {}",e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Token not found in Redis",
+                    StatusCodeEnum.USER1004
+            );
+        }
     }
 }

@@ -56,4 +56,6 @@ public class UserBaseModel extends BaseModel {
     private int helpful;
 
     private int like;
+
+    private String idSocial;
 }
