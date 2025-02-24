@@ -90,6 +90,7 @@ public class JwtService {
 
         try {
             RBucket<String> token = redisson.getBucket(tokenGenerate);
+            log.info("Retrieved userId from Redis: {}", idUser);
             token.set(idUser, expireToken, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.error("Save token to redis failed: ", e);

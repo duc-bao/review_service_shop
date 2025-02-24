@@ -1,12 +1,11 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.LoginRequest;
-import com.ducbao.service_be.model.dto.request.RegisterShopOwner;
-import com.ducbao.service_be.model.dto.request.ResgisterRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.LoginResponse;
 import com.ducbao.service_be.model.dto.response.UserInfoResponse;
 import com.ducbao.service_be.service.AuthenticationService;
+import com.ducbao.service_be.service.GoogleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirements(value = {})
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
+    private final GoogleService googleService;
 
     @Operation(
             summary = "Đăng nhập với tài khoản và mật khẩu",
@@ -284,5 +284,85 @@ public class AuthenticationController {
     @GetMapping("/exists-username")
     public ResponseEntity<ResponseDto<Boolean>> existsUserName(@RequestParam String username) {
         return authenticationService.exitsUsername(username);
+    }
+
+    @Operation(
+            summary = "Đăng xuất tài khoản",
+            description = "Api đăng xuất tài khoản",
+            tags = {"Auth"}
+    )
+    @ApiResponses(
+            {
+                    @ApiResponse(
+                            responseCode = "USER1007",
+                            description = "Đăng xuất tài khoản thành công",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":true,
+                                    "message":"Đăng xuất tài khoản thành công",
+                                    "data":{
+                                        null
+                                    },
+                                    "statusCode":"USER1000",
+                                    "meta":null}
+                                     """))}
+                    )
+            }
+    )
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseDto<Void>> logout(@RequestBody LogoutRequest request){
+        log.info("logout - {}", request);
+        return authenticationService.logout(request);
+    }
+
+    @Operation(
+            summary = "Đăng nhập với google thành công",
+            description = "Api đăng nhập với google thành công",
+            tags = {"Auth"}
+    )
+    @ApiResponses(
+            {
+                    @ApiResponse(
+                            responseCode = "LOGIN1000",
+                            description = "Đăng nhập với google thành công",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":true,
+                                    "message":"Đăng nhập với google thành công"
+                                    "data":{
+                                        accessToken:"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbIlVTRVIiXSwiZW5hYmxlZCI6dHJ1ZSwic3ViIjoiNjcxYTVlZjc2YjdjMWQ0ODY5OGM2ZDcxIiwiZXhwIjoxNzMwOTkxMTMyfQ.nhv9qzZWC5OLebisxRCf33LhXj4xApwcvoRzhj7RHDAv5eU_J15mIqzs0qCOA1HtKiJ0o8szflwuGc3vZHEuqQ"
+                                        userInfoResponse:{
+                                            username: "anhbao",
+                                            email:"truongducbao@gmail.com",
+                                            avatar:"acscscc",
+                                            statusUserEnums:ACTIVE,
+                                        }        
+                                    },
+                                    "statusCode": "LOGIN1000",
+                                    "meta": null
+                                    }
+                                    """))}
+                    ),
+                    @ApiResponse(
+                            responseCode = "LOGIN1001",
+                            description = "Đăng nhập không thành công",
+                            content = {@Content(examples = @ExampleObject(value = """
+                                    {
+                                    "success":true,
+                                    "message":"Tên đăng nhập hoặc mật khẩu không chính xác"
+                                    "data":{
+                                        null 
+                                    },
+                                    "statusCode": "LOGIN1001",
+                                    "meta": null
+                                    }
+                                    """))}
+                    )
+            }
+    )
+    @PostMapping("/login-google")
+    public ResponseEntity<ResponseDto<LoginResponse>> loginGoogle(@RequestBody GoogleRequest request){
+        log.info("login-google - {}", request);
+        return googleService.loginGoogle(request);
     }
 }

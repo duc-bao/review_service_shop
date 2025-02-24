@@ -44,4 +44,15 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.ok(dto);
     }
+
+    @ExceptionHandler(value = ClassCastException.class)
+    public <T> ResponseEntity<ResponseDto<T>> handleClassCastException(ClassCastException e) {
+        log.error("ClassCastException occurred", e);
+        final ResponseDto<T> dto = ResponseDto.<T>builder()
+                .success(false)
+                .message("Lỗi ép kiểu dữ liệu: " + e.getMessage())
+                .statusCode(StatusCodeEnum.EXCEPTION1001.toString()) // Thêm mã lỗi mới nếu cần
+                .build();
+        return ResponseEntity.ok(dto);
+    }
 }
