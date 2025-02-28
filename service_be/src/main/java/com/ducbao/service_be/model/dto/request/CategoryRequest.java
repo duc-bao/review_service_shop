@@ -1,12 +1,14 @@
 package com.ducbao.service_be.model.dto.request;
 
 import com.ducbao.common.model.enums.CategoryEnums;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Set;
 
 @Data
 public class CategoryRequest {
+    @NotBlank(message = "Tên thể loại không được để trống")
     private String name;
 
     private CategoryEnums type;
@@ -15,5 +17,6 @@ public class CategoryRequest {
 
     private String description;
 
+    @NotBlank(message = "Các thẻ của thể loại không được để trống")
     private Set<String> tags;
 }

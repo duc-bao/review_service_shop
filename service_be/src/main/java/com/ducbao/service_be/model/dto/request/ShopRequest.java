@@ -10,15 +10,16 @@ import java.util.List;
 
 @Data
 public class ShopRequest {
-    @NotNull
+    @NotBlank(message = "Tên cửa hàng là bắt buộc")
     private String name;
 
-    @NotNull
+    @NotBlank(message = "Avatar là trường bắt buộc")
     private String avatar;
 
+    @NotBlank(message = "Ảnh giấy phép kinh doanh là bắt buộc")
     private String imageBusiness;
 
-    @NotNull
+    @NotBlank(message = "Email là trường bắt buộc")
     private String email;
 
     private List<String> mediaUrls;
@@ -27,6 +28,7 @@ public class ShopRequest {
 
     private String urlWebsite;
 
+    @NotBlank(message = "Thời gian mở cửa đóng cửa là bắt buộc")
     private List<OpenTimeRequest> openTimeRequests;
 
     private String city;

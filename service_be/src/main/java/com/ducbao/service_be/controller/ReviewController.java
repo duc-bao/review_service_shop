@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -92,7 +93,7 @@ public class ReviewController {
                     """)))
     })
     @PostMapping("")
-    public ResponseEntity<ResponseDto<ReviewResponse>> createReview(@RequestBody ReviewRequest reviewRequest) {
+    public ResponseEntity<ResponseDto<ReviewResponse>> createReview(@RequestBody @Valid ReviewRequest reviewRequest) {
         return reviewService.createReview(reviewRequest);
     }
 

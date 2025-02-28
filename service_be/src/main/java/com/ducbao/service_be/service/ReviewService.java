@@ -79,6 +79,7 @@ public class ReviewService {
 
             ReviewModel reviewModel = mapper.map(reviewRequest, ReviewModel.class);
             shopModel.setCountReview(shopModel.getCountReview() + 1);
+            shopModel.setPoint(shopModel.getPoint() + reviewRequest.getRating());
             reviewModel.setLike(0);
             reviewModel.setHelpful(0);
             reviewModel.setNotLike(0);
@@ -170,9 +171,18 @@ public class ReviewService {
             );
         }
         mapper.maptoObject(reviewRequest, reviewModel);
+        ShopModel shopModel = shopRepository.findById(reviewModel.getIdShop()).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+        shopModel.setPoint(shopModel.getPoint() + reviewRequest.getRating());
         reviewModel.setEdit(true);
 
         try {
+            shopRepository.save(shopModel);
             reviewModel = reviewRepository.save(reviewModel);
             return ResponseBuilder.okResponse(
                     "Cập nhật đánh giá thành công",
@@ -214,6 +224,7 @@ public class ReviewService {
                 );
             }
             shopModel.setCountReview(shopModel.getCountReview() - 1);
+            shopModel.setPoint(shopModel.getPoint() <= 0 ? 0 : shopModel.getPoint() - reviewModel.getRating());
             userModel.setRatingUser(userModel.getRatingUser() - 1);
             userModel.setHelpful(userModel.getHelpful() - reviewModel.getHelpful());
             userModel.setLike(userModel.getLike()  - reviewModel.getLike());

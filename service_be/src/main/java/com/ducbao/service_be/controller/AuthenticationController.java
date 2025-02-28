@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -156,7 +157,7 @@ public class AuthenticationController {
             }
     )
     @PostMapping("/register/shop")
-    public ResponseEntity<ResponseDto<Void>> registerShop(@RequestBody RegisterShopOwner resgisterRequest) {
+    public ResponseEntity<ResponseDto<Void>> registerShop(@RequestBody @Valid RegisterShopOwner resgisterRequest) {
         return authenticationService.registerWithShop(resgisterRequest);
     }
     @Operation(

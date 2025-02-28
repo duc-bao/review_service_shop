@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -143,7 +144,7 @@ public class ShopOwnerController {
             ),
     })
     @PostMapping("/create-service")
-    public ResponseEntity<ResponseDto<ServiceResponse>> createService(@RequestBody ServiceRequest serviceRequest) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> createService(@RequestBody @Valid ServiceRequest serviceRequest) {
         return shopService.createService(serviceRequest);
     }
 
@@ -182,7 +183,7 @@ public class ShopOwnerController {
             ),
     })
     @PutMapping("/update-open-time/{id}")
-    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody List<OpenTimeRequest> openTimeRequests, @PathVariable("id") String id) {
+    public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> updateOpenTime(@RequestBody @Valid List<OpenTimeRequest> openTimeRequests, @PathVariable("id") String id) {
         return shopService.updateOpenTime(openTimeRequests, id);
     }
 
