@@ -4,23 +4,37 @@ import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.naming.AuthenticationException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public <T> ResponseEntity<ResponseDto<T>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.error("Exception occured", e);
-        final ResponseDto<T> dto = ResponseDto.<T>builder()
+        log.error("Validation error occurred", e);
+
+        BindingResult bindingResult = e.getBindingResult();
+
+        // Lấy tất cả lỗi của các trường và ghép thành một message
+        String errorMessage = bindingResult.getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        ResponseDto<T> dto = ResponseDto.<T>builder()
                 .success(false)
-                .message(e.getMessage())
+                .message(errorMessage) // Sử dụng message đã được xử lý
                 .statusCode(StatusCodeEnum.EXCEPTION0507.toString())
                 .build();
+
         return ResponseEntity.ok(dto);
     }
 

@@ -88,7 +88,7 @@ public class CategoryCMSController {
             ),
     })
     @PostMapping("")
-    public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(@RequestBody CategoryRequest categoryRequest) {
+    public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(@RequestBody @Valid CategoryRequest categoryRequest) {
         return categoryService.createCategory(categoryRequest);
     }
 

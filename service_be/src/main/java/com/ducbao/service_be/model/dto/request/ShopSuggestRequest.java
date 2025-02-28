@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +22,12 @@ public class ShopSuggestRequest {
     @NotNull(message = "Size number is required")
     @Min(value = 5, message = "Page size must be at least 1")
     int size;
+
+    private BigDecimal longitude;
+
+    private BigDecimal latitude;
+
+    private String idShop;
+
+
 }

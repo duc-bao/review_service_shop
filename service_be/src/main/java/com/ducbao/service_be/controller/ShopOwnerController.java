@@ -181,7 +181,7 @@ public class ShopOwnerController {
             ),
     })
     @PostMapping("/create-service")
-    public ResponseEntity<ResponseDto<ServiceResponse>> createService(@RequestBody ServiceRequest serviceRequest) {
+    public ResponseEntity<ResponseDto<ServiceResponse>> createService(@RequestBody @Valid ServiceRequest serviceRequest) {
         return shopService.createService(serviceRequest);
     }
 

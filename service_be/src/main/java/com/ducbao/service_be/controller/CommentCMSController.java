@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -91,7 +92,7 @@ public class CommentCMSController {
             ),
     })
     @PostMapping("/{idReview}")
-    public ResponseEntity<ResponseDto<CommentResponse>> addComment(@PathVariable("idReview") String idReview, @RequestBody CommentRequest commentRequest) {
+    public ResponseEntity<ResponseDto<CommentResponse>> addComment(@PathVariable("idReview") String idReview, @RequestBody @Valid CommentRequest commentRequest) {
         return commentService.createComment(commentRequest, idReview);
     }
 

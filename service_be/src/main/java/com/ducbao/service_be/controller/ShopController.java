@@ -112,7 +112,7 @@ public class ShopController {
     @PostMapping("/create-shop")
     @SecurityRequirements(value = {})
 //    @PreAuthorize("hasAuthority('OWNER')")
-    public ResponseEntity<ResponseDto<ShopResponse>> createShop(@RequestBody ShopRequest shopRequest) {
+    public ResponseEntity<ResponseDto<ShopResponse>> createShop(@RequestBody @Valid ShopRequest shopRequest) {
         return shopService.createShop(shopRequest);
     }
 
