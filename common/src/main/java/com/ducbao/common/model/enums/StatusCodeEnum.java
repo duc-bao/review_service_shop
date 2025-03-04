@@ -83,6 +83,13 @@ public enum StatusCodeEnum {
     FAVORITE1000("FAVORITE1000"), // Save favorite successfully
     FAVORITE1001("FAVORITE1001"), // Can not save favorite
     FAVORITE1002("FAVORITE1002"), // not found favorite
+
+    // Advertisement
+    ADVERTISEMENT("ADVERTISEMENT"),
+    ADVERTISEMENT1000("ADVERTISEMENT1000"),
+    ADVERTISEMENT0404("ADVERTISEMENT0404"), // Not found advertisement
+    ADVERTISEMENT0101("ADVERTISEMENT0101"), // Exists advertisement
+
     ;
     public final String value;
 

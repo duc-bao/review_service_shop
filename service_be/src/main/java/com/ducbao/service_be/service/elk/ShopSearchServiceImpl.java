@@ -577,22 +577,28 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             addListFilter(boolQuery, "categorySearchBaseModel.name", categoryNames);
         }
 
-        // Filter by open time
-        if (shopSearchRequest.getOpenTimeId() != null) {
-            List<String> openTimes = shopSearchRequest.getOpenTimeId().stream()
-                    .map(openTimeService::getOpenTimeModel)
-                    .filter(Objects::nonNull)
-                    .flatMap(openTime -> Stream.of(openTime.getOpenTime()))
-                    .collect(Collectors.toList());
-            addListFilter(boolQuery, "openTimeSearchBaseModels.openTime", openTimes);
-        }
+//        // Filter by open time
+//        if (shopSearchRequest.getOpenTimeId() != null) {
+//            List<String> openTimes = shopSearchRequest.getOpenTimeId().stream()
+//                    .map(openTimeService::getOpenTimeModel)
+//                    .filter(Objects::nonNull)
+//                    .flatMap(openTime -> Stream.of(openTime.getOpenTime()))
+//                    .collect(Collectors.toList());
+//            addListFilter(boolQuery, "openTimeSearchBaseModels.openTime", openTimes);
+//        }
 
         if (shopSearchRequest.getCity() != null) {
-            addListFilter(boolQuery, "city", List.of(shopSearchRequest.getCity()));
+            boolQuery.must(TermQuery.of(
+                    t -> t.field("city").value(shopSearchRequest.getCity())
+            )._toQuery());
         }
+        // District filtering
         if (shopSearchRequest.getDistrict() != null) {
-            addListFilter(boolQuery, "district", List.of(shopSearchRequest.getDistrict()));
-        }
+            boolQuery.must(TermQuery.of(t -> t
+                    .field("district")
+                    .value(shopSearchRequest.getDistrict())
+            )._toQuery());
+        };
 
         if (shopSearchRequest.getScoreReview() != null) {
             addRangeFilter(boolQuery, "point", shopSearchRequest.getScoreReview());
