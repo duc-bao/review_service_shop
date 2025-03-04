@@ -1,5 +1,6 @@
 package com.ducbao.service_be.model.dto.request;
 
+import com.ducbao.common.anotation.IsEmail;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +16,7 @@ public class ResgisterRequest {
     private String password;
 
     @NotNull(message = "Email là trường bắt buộc")
+    @IsEmail(message = "Email không đúng định dạng")
     private String email;
 
     private String firstName;
