@@ -66,4 +66,6 @@ public class ShopBaseModel extends BaseModel {
     private String phone;
 
     private boolean isDeleted;
+
+    private Integer view;
 }

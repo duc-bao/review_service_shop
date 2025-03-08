@@ -261,8 +261,8 @@ public class ShopOwnerController {
                     """))}
             ),
     })
-    @PutMapping("/update-service")
-    public ResponseEntity<ResponseDto<ServiceResponse>> updateService(@RequestBody ServiceRequest serviceRequest, @PathVariable String id) {
+    @PutMapping("/update-service/{id}")
+    public ResponseEntity<ResponseDto<ServiceResponse>> updateService(@RequestBody ServiceRequest serviceRequest, @PathVariable("id") String id) {
         return shopService.updateService(serviceRequest, id);
     }
 
