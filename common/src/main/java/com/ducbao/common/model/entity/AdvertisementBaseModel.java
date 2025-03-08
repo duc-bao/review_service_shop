@@ -20,8 +20,6 @@ public class AdvertisementBaseModel extends BaseModel{
 
     private String description;
 
-    private String idShop;
-
     private Integer price;
 
     private StatusAdvertisement statusAdvertisement;

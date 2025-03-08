@@ -1,16 +1,16 @@
-package com.ducbao.common.model.entity;
+package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.enums.StatusPaymentEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
 
 @Data
-@SuperBuilder
+@AllArgsConstructor
 @NoArgsConstructor
-public class HistoryPayementBaseModel extends BaseModel {
-    @Id
+@Builder
+public class HistoryPaymentResponse {
     private String id;
     private String transactionId;
     private String idShop;

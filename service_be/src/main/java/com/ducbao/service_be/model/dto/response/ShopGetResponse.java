@@ -47,5 +47,5 @@ public class ShopGetResponse {
 
     private CategoryEnums categoryEnum;
     private StateServiceEnums stateService;
-
+    private Integer view;
 }

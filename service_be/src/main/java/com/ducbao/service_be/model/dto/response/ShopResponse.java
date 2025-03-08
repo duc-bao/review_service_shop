@@ -54,4 +54,6 @@ public class ShopResponse {
     private String idCategory;
 
     private boolean isDelete;
+
+    private Integer total_view;
 }

@@ -772,7 +772,7 @@ public class ShopService {
         if (panigationRequest.getKeyword() != null && !panigationRequest.getKeyword().trim().isEmpty()) {
             criteria = criteria.and("name").regex(panigationRequest.getKeyword(), "i");
         }
-
+        criteria.and("isDelete").is(true);
         Query query = new Query(criteria).with(pageable);
         List<ServiceModel> services = mongoTemplate.find(query, ServiceModel.class);
         long totalElements = mongoTemplate.count(query.skip(0).limit(0), ServiceModel.class);
