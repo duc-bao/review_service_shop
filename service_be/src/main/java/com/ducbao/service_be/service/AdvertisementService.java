@@ -8,12 +8,14 @@ import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.service_be.model.dto.request.AdvertisementRequest;
 import com.ducbao.service_be.model.dto.request.PanigationAdvertisementRequest;
 import com.ducbao.service_be.model.dto.request.PanigationRequest;
+import com.ducbao.service_be.model.dto.response.AdsSubcriptionResponse;
 import com.ducbao.service_be.model.dto.response.AdvertisementResponse;
+import com.ducbao.service_be.model.dto.response.ShopResponse;
+import com.ducbao.service_be.model.entity.ADSSubscriptionModel;
 import com.ducbao.service_be.model.entity.AdvertisementModel;
+import com.ducbao.service_be.model.entity.ShopModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
-import com.ducbao.service_be.repository.AdvertisementRepository;
-import com.ducbao.service_be.repository.ShopSearchRepository;
-import com.ducbao.service_be.repository.UserRepository;
+import com.ducbao.service_be.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +28,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +42,8 @@ public class AdvertisementService {
     private final UserRepository userRepository;
     private final CommonMapper mapper;
     private final MongoTemplate mongoTemplate;
+    private final ShopRepository shopRepository;
+    private final ADSSubscriptionRepository adsSubscriptionRepository;
 
     public ResponseEntity<ResponseDto<AdvertisementResponse>> createAdvertisement(AdvertisementRequest advertisementRequest) {
         if (advertisementRepository.existsByName(advertisementRequest.getName())) {
@@ -157,6 +160,96 @@ public class AdvertisementService {
         );
     }
 
+    public ResponseEntity<ResponseDto<AdsSubcriptionResponse>> getAdsSubscriptionById(String id) {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findById(idUser).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        ADSSubscriptionModel adsSubscriptionModel = adsSubscriptionRepository.findById(id).orElse(null);
+        if (adsSubscriptionModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "không tìm thấy đăng ký gói quảng cáo",
+                    StatusCodeEnum.ADVERTISEMENT0404
+            );
+        }
+
+        AdvertisementModel advertisementModel = advertisementRepository.findById(adsSubscriptionModel.getIdAdvertisement()).orElse(null);
+
+        if (advertisementModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "không tìm thấy gói quảng cáo",
+                    StatusCodeEnum.ADVERTISEMENT0404
+            );
+        }
+        AdsSubcriptionResponse adsSubcriptionResponse = mapper.map(adsSubscriptionModel, AdsSubcriptionResponse.class);
+        adsSubcriptionResponse.setName(advertisementModel.getName());
+        adsSubcriptionResponse.setDescription(advertisementModel.getDescription());
+        Long remainingDay = ChronoUnit.DAYS.between(LocalDateTime.now(), adsSubscriptionModel.getExpiredAt());
+        if (remainingDay > 0) {
+            adsSubcriptionResponse.setStatusAds("Đang sử dụng");
+            adsSubcriptionResponse.setRemainingDay(remainingDay);
+        } else {
+            adsSubcriptionResponse.setStatusAds("Hết hạn");
+            adsSubcriptionResponse.setRemainingDay(0L);
+        }
+        return ResponseBuilder.okResponse(
+                "Lấy thông tin chi tiết gói cước đăng ký thành công",
+                adsSubcriptionResponse,
+                StatusCodeEnum.ADVERTISEMENT1000
+        );
+
+    }
+
+    public ResponseEntity<ResponseDto<List<AdsSubcriptionResponse>>> getListAdsSubscription() {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findById(idUser).orElse(null);
+        if (shopModel == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1003
+            );
+        }
+
+        List<ADSSubscriptionModel> adsSubscriptionModelList = adsSubscriptionRepository.findAllByIdShop(shopModel.getId());
+        LocalDateTime now = LocalDateTime.now();
+        List<AdsSubcriptionResponse> adsSubcriptionResponses = adsSubscriptionModelList.stream()
+                .map(adsSubscriptionModel -> {
+                    AdvertisementModel advertisementModel = advertisementRepository
+                            .findById(adsSubscriptionModel.getIdAdvertisement())
+                            .orElse(null);
+                    if (advertisementModel == null) {
+                        return null; // Nếu không tìm thấy gói, bỏ qua
+                    }
+
+                    AdsSubcriptionResponse adsSubcriptionResponse = mapper.map(advertisementModel, AdsSubcriptionResponse.class);
+                    adsSubcriptionResponse.setName(advertisementModel.getName());
+                    adsSubcriptionResponse.setDescription(advertisementModel.getDescription());
+
+                    // Kiểm tra thời gian hết hạn
+                    LocalDateTime endDate = adsSubscriptionModel.getExpiredAt();
+                    if (endDate.isBefore(now)) {
+                        adsSubcriptionResponse.setStatusAds("Hết hạn");
+                    } else {
+                        adsSubcriptionResponse.setStatusAds("Đang sử dụng");
+                    }
+
+                    return adsSubcriptionResponse;
+                })
+                .filter(Objects::nonNull) // Loại bỏ các giá trị null
+                .collect(Collectors.toList());
+
+        return ResponseBuilder.okResponse(
+                "Lấy thông tin gói quảng cáo sử dụng của Cửa hàng thành công",
+                adsSubcriptionResponses,
+                StatusCodeEnum.ADVERTISEMENT1000
+        );
+    }
+
     public ResponseEntity<ResponseDto<AdvertisementResponse>> getById(String id) {
         AdvertisementModel model = advertisementRepository.findById(id).orElse(null);
         if (model == null) {
@@ -210,6 +303,35 @@ public class AdvertisementService {
                     StatusCodeEnum.ADVERTISEMENT0101
             );
         }
+    }
 
+    public ResponseEntity<ResponseDto<List<ShopResponse>>> getShopByAdvertisement() {
+        List<ADSSubscriptionModel> adsSubscriptionModelList = adsSubscriptionRepository.findAll()
+                .stream().filter(adsSubscriptionModel -> adsSubscriptionModel.getExpiredAt().isAfter(LocalDateTime.now()))
+                .collect(Collectors.toList());
+
+        final String idUser = userService.userId();
+        final String idShop = Optional.ofNullable(idUser)
+                .map(user -> shopRepository.findByIdUser(user))
+                .map(ShopModel::getId)
+                .orElse(null);
+        List<ShopModel> shopModelList = adsSubscriptionModelList.stream()
+                .map(adsSubscriptionModel -> {
+                    ShopModel shopModel = shopRepository.findById(adsSubscriptionModel.getIdShop()).orElse(null);
+                    return shopModel;
+                }).filter(Objects::nonNull)
+                .filter(shopModel ->  !shopModel.getId().equals(idShop))
+                .collect(Collectors.toList());
+        Collections.shuffle(shopModelList);
+        List<ShopModel> shopModelListNew = shopModelList.stream().limit(3).collect(Collectors.toList());
+        List<ShopResponse> shopResponseList = shopModelListNew.stream()
+                .map(
+                        shopModel -> mapper.map(shopModel, ShopResponse.class)
+                ).collect(Collectors.toList());
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách cửa hàng được tài trợ thành công",
+                shopResponseList,
+                StatusCodeEnum.ADVERTISEMENT1000
+        );
     }
 }

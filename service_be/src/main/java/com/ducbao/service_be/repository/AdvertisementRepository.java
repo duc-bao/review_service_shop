@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AdvertisementRepository extends MongoRepository<AdvertisementModel, String> {
     boolean existsByName(String name);
+
 }

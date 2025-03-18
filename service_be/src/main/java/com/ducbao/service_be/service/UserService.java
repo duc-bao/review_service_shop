@@ -139,7 +139,7 @@ public class UserService {
                     mapper.map(userModel, UserResponse.class),
                     StatusCodeEnum.USER1000
             );
-        }catch (Exception e) {
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Gửi mật khẩu thất bại",
                     StatusCodeEnum.USER1001
@@ -148,7 +148,7 @@ public class UserService {
     }
 
 
-    public ResponseEntity<ResponseDto<UserResponse>> getUserById(String id){
+    public ResponseEntity<ResponseDto<UserResponse>> getUserById(String id) {
         UserModel userModel = userRepository.findById(id).orElse(null);
         if (userModel == null) {
             return ResponseBuilder.badRequestResponse(
@@ -170,6 +170,9 @@ public class UserService {
 
     public String userId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return null; // Trả về null nếu chưa đăng nhập
+        }
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         UserModel userModel = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
         return userModel.getId();
@@ -201,9 +204,9 @@ public class UserService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<UserResponse>>> getListUser(PanigationRequest request){
+    public ResponseEntity<ResponseDto<List<UserResponse>>> getListUser(PanigationRequest request) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createAt");
-        if(request.getSort() != null){
+        if (request.getSort() != null && !request.getSort().isBlank()) {
             String fieldSort = request.getSort().replace("-", "");
             Sort.Direction direction = request.getSort().startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC;
             sort = Sort.by(direction, fieldSort);
@@ -222,15 +225,15 @@ public class UserService {
         // Thực hiện truy vấn
         Query query = new Query(criteria).with(pageable);
         List<UserModel> userModels = mongoTemplate.find(query, UserModel.class);
-        long count = mongoTemplate.count(query, UserModel.class);
+        long totalElements = mongoTemplate.count(query.skip(0).limit(0), UserModel.class);
         List<UserResponse> userResponses = userModels.stream()
                 .map(userModel -> mapper.map(userModel, UserResponse.class)).collect(Collectors.toList());
 
         MetaData metaData = MetaData.builder()
-                .totalPage((int) Math.ceil((double) count / request.getLimit()))
+                .totalPage((int) Math.ceil((double) totalElements / request.getLimit()))
                 .pageSize(request.getLimit())
                 .currentPage(request.getPage())
-                .total(count)
+                .total(totalElements)
                 .build();
 
         return ResponseBuilder.okResponse(
@@ -241,7 +244,7 @@ public class UserService {
         );
     }
 
-    public ResponseEntity<ResponseDto<UserResponse>> blockAccount(String idUser){
+    public ResponseEntity<ResponseDto<UserResponse>> blockAccount(String idUser) {
         UserModel userModel = userRepository.findById(idUser).orElse(null);
         if (userModel == null) {
             return ResponseBuilder.badRequestResponse(
@@ -258,7 +261,7 @@ public class UserService {
                     mapper.map(userModel, UserResponse.class),
                     StatusCodeEnum.USER1003
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error blockAccount() - {}", e.getMessage());
             return ResponseBuilder.badRequestResponse(
                     "Lỗi khi khóa tài khoản",

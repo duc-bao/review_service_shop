@@ -63,13 +63,13 @@ public class ShopSearchBaseModel {
     @Field(type = FieldType.Integer)
     private Integer countReview;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String city;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String ward;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String district;
 
     @Field(type = FieldType.Boolean)

@@ -56,6 +56,8 @@ public class ShopService {
     private final CategoryRepository categoryRepository;
     private final ElasticsearchOperations elasticsearchOperations;
     private final MongoTemplate mongoTemplate;
+    private final ADSSubscriptionRepository adsSubscriptionRepository;
+    private final AdvertisementRepository advertisementRepository;
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
 //        String idUser = userService.userId();
@@ -212,6 +214,7 @@ public class ShopService {
                 StatusCodeEnum.SHOP1006
         );
     }
+
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTimeByShop() {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
@@ -237,6 +240,7 @@ public class ShopService {
                 StatusCodeEnum.SHOP1006
         );
     }
+
     public ResponseEntity<ResponseDto<ShopResponse>> activeShop(String id) {
         ShopModel shopModel = shopRepository.findById(id).orElse(null);
         if (shopModel == null) {
@@ -348,10 +352,54 @@ public class ShopService {
         );
     }
 
+    public ResponseEntity<ResponseDto<Void>> recordView(RecordViewRequest request) {
+        String idUser = userService.userId();
+        if (idUser == null) {
+            return ResponseBuilder.okResponse(
+                    "Người dùng chưa đăng nhập, không cập nhật lượt xem",
+                    StatusCodeEnum.SHOP1000
+            );
+        }
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if (shopModel != null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Không thể tính record lượt xem",
+                    StatusCodeEnum.SHOP1005
+            );
+        }
+        ShopModel shopModelNew = shopRepository.findById(request.getIdShop()).orElse(null);
+        if (shopModelNew == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "không thể tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1005
+            );
+        }
+        shopModelNew.setView((shopModelNew.getView() == null ? 0 : shopModelNew.getView()) + 1);
+        if ("ads".equalsIgnoreCase(request.getType())) {
+            ADSSubscriptionModel subscriptionModel = adsSubscriptionRepository.findByIdShop(shopModel.getId()).orElse(null);
+            if (subscriptionModel != null) {
+                subscriptionModel.setTotalView((subscriptionModel.getTotalView() != null ? subscriptionModel.getTotalView() : 0) + 1);
+                adsSubscriptionRepository.save(subscriptionModel);
+            }
+        }
+        try {
+            shopRepository.save(shopModelNew);
+            return ResponseBuilder.okResponse(
+                    "Tăng số lượng view thành công",
+                    StatusCodeEnum.SHOP1000
+            );
+        }catch (Exception e){
+            return ResponseBuilder.badRequestResponse(
+                    "Lỗi xảy ra khi đếm số lượng truy cập",
+                    StatusCodeEnum.SHOP1005
+            );
+        }
+    }
+
     public ResponseEntity<ResponseDto<ShopGetResponse>> getShop() {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
-        if(shopModel == null) {
+        if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thâ cửa hàng",
                     StatusCodeEnum.SHOP1003
@@ -368,7 +416,7 @@ public class ShopService {
                     shopResponse,
                     StatusCodeEnum.SHOP1004
             );
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error getShop() - {}", e.getMessage());
             return ResponseBuilder.badRequestResponse(
                     "Xảy ra lỗi khi lấy thông tin cửa hàng",
@@ -395,7 +443,7 @@ public class ShopService {
 //
 //    }
 
-//    public ResponseEntity<ResponseDto<String>> uploadImagme(MultipartFile file) {
+    //    public ResponseEntity<ResponseDto<String>> uploadImagme(MultipartFile file) {
 //        String idUser = userService.userId();
 //        String url = fileService.upload(file, idUser, FileConstant.IMAGE_SHOP);
 //        return ResponseBuilder.okResponse(
@@ -747,26 +795,27 @@ public class ShopService {
 
     /**
      * Get list service
-     * @Param panigationRequest
+     *
      * @return list ServiceResponse
-     * */
+     * @Param panigationRequest
+     */
 
-    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListService(PanigationRequest panigationRequest){
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListService(PanigationRequest panigationRequest) {
         String idUser = userService.userId();
         ShopModel shopModel = shopRepository.findByIdUser(idUser);
-        if(shopModel == null){
+        if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tồn tại cửa hàng",
                     StatusCodeEnum.SHOP1003
             );
         }
         Sort sort = Sort.by(Sort.Direction.DESC, "createAt");
-        if (panigationRequest.getSort() != null){
+        if (panigationRequest.getSort() != null) {
             String sortField = panigationRequest.getSort().replace("-", "");
             Sort.Direction direction = panigationRequest.getSort().startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC;
             sort = Sort.by(direction, sortField);
         }
-        Pageable pageable = PageRequest.of(panigationRequest.getPage(), panigationRequest.getLimit(),sort);
+        Pageable pageable = PageRequest.of(panigationRequest.getPage() - 1, panigationRequest.getLimit(), sort);
         Criteria criteria = Criteria.where("idShop").is(shopModel.getId());
 
         if (panigationRequest.getKeyword() != null && !panigationRequest.getKeyword().trim().isEmpty()) {
@@ -778,7 +827,7 @@ public class ShopService {
         long totalElements = mongoTemplate.count(query.skip(0).limit(0), ServiceModel.class);
 
         List<ServiceResponse> serviceResponses = services.stream()
-                .map(serviceModel ->  mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
+                .map(serviceModel -> mapper.map(serviceModel, ServiceResponse.class)).collect(Collectors.toList());
 
         MetaData metaData = MetaData.builder()
                 .total(totalElements)  // Tổng số bản ghi từ MongoDB

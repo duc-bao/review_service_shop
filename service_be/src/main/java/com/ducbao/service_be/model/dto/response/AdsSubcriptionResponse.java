@@ -1,19 +1,19 @@
-package com.ducbao.common.model.entity;
+package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.enums.StatusAdvertisement;
 import com.ducbao.common.model.enums.StatusPaymentEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
-public class ADSSubscriptionBaseModel extends BaseModel {
-    @Id
+@Builder
+public class AdsSubcriptionResponse {
     private String id;
     private String idShop;
     private String idAdvertisement;
@@ -23,5 +23,10 @@ public class ADSSubscriptionBaseModel extends BaseModel {
     private StatusAdvertisement status;
     private StatusPaymentEnum statusPayment;
     private String vnpTxnRef;
-    private Integer totalView;
+    private String name;
+    private String description;
+    private Integer totalAccess;
+    private String statusAds;
+    private LocalDateTime createdAt;
+    private Long remainingDay;
 }
