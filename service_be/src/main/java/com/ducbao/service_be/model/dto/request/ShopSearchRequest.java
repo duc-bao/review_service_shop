@@ -18,13 +18,11 @@ import java.util.List;
 public class ShopSearchRequest {
     private String keyword;
     private List<String> categoryId;
-    private List<String> openTimeId;
     private Double scoreReview;
     private String city;
     private String district;
     private BigDecimal latitude;
     private BigDecimal longitude;
-    private BigDecimal distance;
     private String closeTime;
     private String sortField;
     private SortOrderEnums sortOrderEnums;
