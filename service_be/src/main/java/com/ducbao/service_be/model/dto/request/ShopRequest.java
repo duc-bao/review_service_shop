@@ -2,7 +2,9 @@ package com.ducbao.service_be.model.dto.request;
 
 import com.ducbao.common.anotation.IsEmail;
 import com.ducbao.common.model.enums.CategoryEnums;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -30,7 +32,8 @@ public class ShopRequest {
 
     private String urlWebsite;
 
-    @NotBlank(message = "Thời gian mở cửa đóng cửa là bắt buộc")
+    @NotEmpty(message = "Thời gian mở cửa đóng cửa là bắt buộc")
+    @Valid
     private List<OpenTimeRequest> openTimeRequests;
 
     private String city;

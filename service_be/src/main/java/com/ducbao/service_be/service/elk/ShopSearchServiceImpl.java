@@ -34,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -193,7 +194,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         ));
         return null;
     }
-
 
 
     /**
@@ -461,12 +461,18 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return "";
     }
 
+    /** Phương thức tìm kiếm dựa trên các yêu cầu
+     * @param shopSearchRequest
+     * @return searchRequest
+     * */
     private SearchRequest buildSearchQuery(ShopSearchRequest shopSearchRequest) {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
         if (shopSearchRequest.getKeyword() != null && !shopSearchRequest.getKeyword().isEmpty()) {
-            boolQuery.must(buildKeywordSearch(shopSearchRequest.getKeyword()))
-                    .filter(buildFilterSearch(shopSearchRequest).build()._toQuery());
+            boolQuery.must(buildKeywordSearch(shopSearchRequest.getKeyword()));
         }
+
+        boolQuery.filter(buildFilterSearch(shopSearchRequest).build()._toQuery());
+
         boolQuery.must(TermQuery.of(
                 m -> m.field("isVery")
                         .value(true)
@@ -530,7 +536,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                 case "name":
                     searchRequestBuilder.sort(s -> s
                             .field(f -> f
-                                    .field("name.keyword")
+                                    .field("name")
                                     .order(getSortOrder(shopSearchRequest.getSortOrderEnums()))
                             )
                     );
@@ -565,73 +571,145 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return sortOrder == SortOrderEnums.DESC ? SortOrder.Desc : SortOrder.Asc;
     }
 
-    private BoolQuery.Builder buildFilterSearch(ShopSearchRequest shopSearchRequest) {
-        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-        List<CategoryModel> categoryModels = new ArrayList<>();
-        if (shopSearchRequest.getCategoryId() != null) {
-            List<String> categoryNames = shopSearchRequest.getCategoryId().stream()
-                    .map(categoryService::getCategory)
-                    .filter(Objects::nonNull)
-                    .map(CategoryModel::getName)
-                    .collect(Collectors.toList());
-            addListFilter(boolQuery, "categorySearchBaseModel.name", categoryNames);
+    /**
+     * Builds a Boolean query for shop search filtering based on the provided request parameters.
+     *
+     * @param shopSearchRequest The request containing search filter parameters
+     * @return A BoolQuery.Builder with all applied filters
+     */
+        private BoolQuery.Builder buildFilterSearch(ShopSearchRequest shopSearchRequest) {
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+            addCategoryFilter(boolQuery, shopSearchRequest.getCategoryId());
+            addTermFilter(boolQuery, "city", shopSearchRequest.getCity());
+            addTermFilter(boolQuery, "district", shopSearchRequest.getDistrict());
+            applyScoreFilter(boolQuery, shopSearchRequest.getScoreReview());
+            addCloseTimeFilter(boolQuery, shopSearchRequest.getCloseTime());
+            return boolQuery;
         }
 
-//        // Filter by open time
-//        if (shopSearchRequest.getOpenTimeId() != null) {
-//            List<String> openTimes = shopSearchRequest.getOpenTimeId().stream()
-//                    .map(openTimeService::getOpenTimeModel)
-//                    .filter(Objects::nonNull)
-//                    .flatMap(openTime -> Stream.of(openTime.getOpenTime()))
-//                    .collect(Collectors.toList());
-//            addListFilter(boolQuery, "openTimeSearchBaseModels.openTime", openTimes);
-//        }
-
-        if (shopSearchRequest.getCity() != null) {
-            boolQuery.must(TermQuery.of(
-                    t -> t.field("city").value(shopSearchRequest.getCity())
-            )._toQuery());
+    private void addCloseTimeFilter(BoolQuery.Builder boolQuery, String closeTime) {
+        if(closeTime == null || closeTime.isEmpty()) {
+            return;
         }
-        // District filtering
-        if (shopSearchRequest.getDistrict() != null) {
-            boolQuery.must(TermQuery.of(t -> t
-                    .field("district")
-                    .value(shopSearchRequest.getDistrict())
-            )._toQuery());
-        };
 
-        if (shopSearchRequest.getScoreReview() != null) {
-            addRangeFilter(boolQuery, "point", shopSearchRequest.getScoreReview());
-        }
-        return boolQuery;
+        // Chuẩn hóa định dạng thời gian (thêm 0 phía trước nếu cần)
+       final String closeTimes = normalizeTimeFormat(closeTime);
+
+        // Sử dụng nested query để lọc theo điều kiện
+        NestedQuery nestedQuery = NestedQuery.of(
+                n -> n.path("openTimeSearchBaseModels")
+                        .query(
+                                q -> q.bool(
+                                        b -> b.must(
+                                                m -> m.term(
+                                                        t -> t.field("openTimeSearchBaseModels.isDayOff")
+                                                                .value(false)
+                                                )
+                                        ).must(
+                                                m -> m.range(
+                                                        r -> r.field("openTimeSearchBaseModels.closeTime")
+                                                                .lte(JsonData.of(closeTimes))
+                                                )
+                                        )
+                                )
+                        )
+        );
+
+        // Đổi thành filter để tối ưu hiệu suất
+        boolQuery.filter(nestedQuery._toQuery());
     }
 
-    private void addRangeFilter(BoolQuery.Builder boolQuery, String field, Double rangeValues) {
-        if (rangeValues != null && rangeValues > 0.5 && rangeValues <= 5) {
-            Double min = rangeValues == 5 ? rangeValues - 0.5 : rangeValues - 0.5;
-            Double max = rangeValues == 5 ? rangeValues : rangeValues + 0.5;
-
-            BoolQuery.Builder rangeQuery = new BoolQuery.Builder();
-            if (min != null) {
-                rangeQuery.must(RangeQuery.of(r -> r.field(field).gte(JsonData.of(min)))._toQuery());
-            }
-            if (max != null) {
-                rangeQuery.must(RangeQuery.of(r -> r.field(field).lte(JsonData.of(max)))._toQuery());
-            }
-            boolQuery.must(rangeQuery.build()._toQuery());
+    private void addTermFilter(BoolQuery.Builder boolQuery, String filed, String value) {
+        if(value == null || value.isEmpty()) {
+            return;
         }
+        String normalizedValue = Normalizer.normalize(value.trim(), Normalizer.Form.NFC);
+
+        boolQuery.filter(
+                TermQuery.of(
+                        t -> t.field(filed).value(normalizedValue)
+                )._toQuery()
+        );
     }
 
-    private void addListFilter(BoolQuery.Builder boolQuery, String field, List<String> values) {
-        if (values != null && !values.isEmpty()) {
-            BoolQuery.Builder listQuery = new BoolQuery.Builder();
-            values.forEach(value ->
-                    listQuery.should(MatchQuery.of(m -> m.field(field).query(value))._toQuery())
+    private void addCategoryFilter(BoolQuery.Builder boolQuery, List<String> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return;
+        }
+
+        NestedQuery nestedQuery = NestedQuery.of(n -> n
+                .path("categorySearchBaseModel")
+                .query(q -> q
+                        .bool(b -> {
+                            for (String categoryId : categoryIds) {
+                                b.should(s -> s
+                                        .bool(sb -> sb
+                                                .should(s1 -> s1.term(t -> t
+                                                        .field("categorySearchBaseModel.id") // Field id
+                                                        .value(categoryId)
+                                                ))
+                                                .should(s2 -> s2.term(t -> t
+                                                        .field("categorySearchBaseModel.idParent") // Field idParent
+                                                        .value(categoryId)
+                                                ))
+                                        )
+                                );
+                            }
+                            return b;
+                        })
+                )
+        );
+        boolQuery.should(nestedQuery._toQuery());
+    }
+
+    private void applyScoreFilter(BoolQuery.Builder boolQuery, Double score) {
+        if (score != null && score > 0.5 && score <= 5) {
+            Double min = score - 0.5;
+            Double max = score == 5 ? score : score + 0.5;
+
+            ScriptQuery scriptQuery = ScriptQuery.of(s -> s
+                    .script(script -> script
+                            .inline(inline -> inline
+                                    .source("doc['totalScore'].value / doc['countReview'].value >= params.min && " +
+                                            "doc['totalScore'].value / doc['countReview'].value <= params.max")
+                                    .params("min", JsonData.of(min))
+                                    .params("max", JsonData.of(max))
+                            )
+                    )
             );
-            boolQuery.must(listQuery.build()._toQuery());
+
+            boolQuery.filter(scriptQuery._toQuery());
         }
     }
 
+    // Hàm chuẩn hóa định dạng thời gian
+    private String normalizeTimeFormat(String time) {
+        if (time == null || time.isEmpty()) {
+            return time;
+        }
+
+        // Kiểm tra nếu định dạng đã là HH:MM
+        if (time.matches("\\d{2}:\\d{2}")) {
+            return time;
+        }
+
+        // Nếu định dạng là H:MM
+        if (time.matches("\\d:\\d{2}")) {
+            return "0" + time;
+        }
+
+        // Nếu định dạng là HH:M
+        if (time.matches("\\d{2}:\\d")) {
+            return time.substring(0, 3) + "0" + time.substring(3);
+        }
+
+        // Nếu định dạng là H:M
+        if (time.matches("\\d:\\d")) {
+            return "0" + time.substring(0, 2) + "0" + time.substring(2);
+        }
+
+        return time;
+    }
 
     /**
      * Create Query with keyword have field name shop, name category, name service
@@ -664,24 +742,23 @@ public class ShopSearchServiceImpl implements ShopSearchService {
      * Handles migrate data to mongodb to Elasticsearch
      * *
      */
-//    @PostConstruct
-//    public void migrateShopsToElasticsearch() {
-//        // Fetch all shops from the database
-//        List<ShopModel> shopServices = shopRepository.findAll();
-//
-//        // Prepare a list to store Elasticsearch documents
-//        List<ShopSearchBaseModel> searchModels = new ArrayList<>();
-//
-//        // Convert database entities to Elasticsearch search models
-//        for (ShopModel shopModel : shopServices) {
-//            ShopSearchBaseModel searchModel = convertToSearchModel(shopModel);
-//            searchModels.add(searchModel);
-//        }
-//
-//        // Bulk index documents to Elasticsearch
-//        bulkIndexShops(searchModels);
-//    }
+    @PostConstruct
+    public void migrateShopsToElasticsearch() {
+        // Fetch all shops from the database
+        List<ShopModel> shopServices = shopRepository.findAll();
 
+        // Prepare a list to store Elasticsearch documents
+        List<ShopSearchBaseModel> searchModels = new ArrayList<>();
+
+        // Convert database entities to Elasticsearch search models
+        for (ShopModel shopModel : shopServices) {
+            ShopSearchBaseModel searchModel = convertToSearchModel(shopModel);
+            searchModels.add(searchModel);
+        }
+
+        // Bulk index documents to Elasticsearch
+        bulkIndexShops(searchModels);
+    }
     private ShopSearchModel convertToSearchModel(ShopModel shopModel) {
         return ShopSearchModel.builder()
                 .id(shopModel.getId())
@@ -716,10 +793,10 @@ public class ShopSearchServiceImpl implements ShopSearchService {
 
     /**
      * Lấy danh sách id cửa hàng yêu thích cửa người dùng
-     * */
+     */
     private List<String> getFavoriteShopIds(String userID) {
         List<FavoriteModel> favoriteModels = favoriteRepository.findAllByIdUser(userID);
-        if(favoriteModels == null || favoriteModels.isEmpty()) {
+        if (favoriteModels == null || favoriteModels.isEmpty()) {
             return null;
         }
         return favoriteModels.stream().map(
@@ -729,11 +806,10 @@ public class ShopSearchServiceImpl implements ShopSearchService {
 
     /**
      * Lấy danh sách thể loại yêu thích
-     * */
+     */
 //    private List<String> getFavoriteCategories(String userID) {
 //
 //    }
-
     private UserModel convertToUser(String userId) {
         return userRepository.findById(userId).orElse(null);
     }
@@ -793,7 +869,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
 
     /**
      * Tạo index với cửa hàng
-     * */
+     */
     private void bulkIndexShops(List<ShopSearchBaseModel> searchModels) {
         try {
             // Bulk index the documents

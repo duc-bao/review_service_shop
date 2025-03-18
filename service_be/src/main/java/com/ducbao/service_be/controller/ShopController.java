@@ -1,6 +1,7 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.RecordViewRequest;
 import com.ducbao.service_be.model.dto.request.ShopRequest;
 import com.ducbao.service_be.model.dto.request.ShopSearchRequest;
 import com.ducbao.service_be.model.dto.request.VerifyShopRequest;
@@ -274,6 +275,28 @@ public class ShopController {
     }
 
     @Operation(
+            summary = "Tăng số lượng truy cập của cửa hàng",
+            description = "Api tăng số lượng truy cập của cửa hàng",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Tăng số lượng truy cập của cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Tăng số lượng truy cập của cửa hàng thành công",
+                          "data": {
+                              }
+                          statusCode: "SHOP1000"
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/record-view")
+    public ResponseEntity<ResponseDto<Void>> recordView(@RequestBody @Valid RecordViewRequest request) {
+        log.info("recordView {}", request);
+        return shopService.recordView(request);
+    }
+    @Operation(
             summary = "Lấy danh sách dịch vụ ",
             description = "Api Lấy danh sách dịch vụ ",
             tags = {"USERS:SERVICE"},
@@ -520,4 +543,6 @@ public class ShopController {
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(@PathVariable("id") String id) {
         return shopService.getListOpenTime(id);
     }
+
+
 }
