@@ -1,10 +1,7 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.RecordViewRequest;
-import com.ducbao.service_be.model.dto.request.ShopRequest;
-import com.ducbao.service_be.model.dto.request.ShopSearchRequest;
-import com.ducbao.service_be.model.dto.request.VerifyShopRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.service.FileService;
 import com.ducbao.service_be.service.ShopService;
@@ -544,5 +541,46 @@ public class ShopController {
         return shopService.getListOpenTime(id);
     }
 
-
+    @Operation(
+            summary = "Lấy danh sách cửa hàng đề xuất",
+            description = "Api Lấy danh sách cửa hàng đề xuất",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy danh sách cửa hàng đề xuất", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách cửa hàng đề xuất thành công",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/suggest")
+    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> getSuggestShop(@RequestBody ShopSuggestRequest request) {
+        log.info("GetSuggestShop() - {}", request.toString());
+        return shopSearchService.suggestShopService(request);
+    }
 }

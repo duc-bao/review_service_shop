@@ -1,9 +1,11 @@
 package com.ducbao.service_be.service.elk;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.JsonData;
 import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.dto.MetaData;
@@ -26,6 +28,7 @@ import com.ducbao.service_be.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.index.query.functionscore.GaussDecayFunctionBuilder;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
@@ -85,17 +88,60 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         }
     }
 
-//    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> suggestShopService(ShopSuggestRequest request, String checkType) {
-//        FunctionScoreQuery functionScoreQuery = buildShopQuery(checkType, request);
-//    }
+    @Override
+    public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> suggestShopService(ShopSuggestRequest request) {
+        FunctionScoreQuery functionScoreQuery = buildShopQuery(request.getCheckType(), request);
+        try {
+            SearchRequest searchRequest = new SearchRequest.Builder()
+                    .index("shop")
+                    .query(q -> q.functionScore(functionScoreQuery))
+                    .from(request.getPage() * request.getSize())
+                    .size(request.getSize())
+                    .build();
+            if (request.getSortField() != null && !request.getSortField().isEmpty()) {
+                searchRequest = new SearchRequest.Builder()
+                        .index("shop") // Same index name as above
+                        .query(q -> q.functionScore(functionScoreQuery))
+                        .from(request.getPage() * request.getSize())
+                        .size(request.getSize())
+                        .sort(s -> s.field(f -> f
+                                .field(request.getSortField())
+                                .order(request.getSortOrderEnums().getSortOrder())))
+                        .build();
+            }
+
+            SearchResponse<ShopSearchModel> response = elasticsearchClient.search(searchRequest, ShopSearchModel.class);
+            List<ShopSearchModel> shopSearchResponses = response.hits()
+                    .hits().stream().map(
+                            hit -> hit.source()
+                    ).collect(Collectors.toList());
+            List<ShopSearchResponse> shopSearchResponseList = extractShopSearchResult(shopSearchResponses);
+            MetaData metaData = MetaData.builder()
+                    .totalPage((int) Math.ceil((double) response.hits().total().value() / request.getSize()))
+                    .total(response.hits().total().value())
+                    .pageSize(request.getSize())
+                    .currentPage(request.getPage())
+                    .build();
+
+            return ResponseBuilder.okResponse(
+                    "Lấy danh sách gợi ý cửa hàng thành công",
+                    shopSearchResponseList,
+                    metaData,
+                    StatusCodeEnum.SHOP1000
+            );
+        } catch (Exception e) {
+            log.error("Error suggestShopService - {}", e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Lỗi khi thực hiện đề xuất cửa hàng",
+                    StatusCodeEnum.SHOP1005
+            );
+        }
+
+    }
+
 
     private FunctionScoreQuery buildShopQuery(String checkType, ShopSuggestRequest request) {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-        String userID = userService.userId();
-        boolQuery.mustNot(TermQuery.of(
-                t -> t.field("createBy")
-                        .value(userID)
-        )._toQuery());
         boolQuery.must(TermQuery.of(
                 m -> m.field("isVery").value(true)
         )._toQuery());
@@ -104,19 +150,34 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                         t -> t.value("ACTIVE").field("statusShopEnums")
                 )._toQuery()
         );
+        String idUser = null;
+
+        try {
+            idUser = userService.userId();
+        } catch (Exception e) {
+            log.debug("User not authenticated, skipping user context");
+        }
+        final String idUs = idUser;
+        if (idUs != null) {
+            boolQuery.mustNot(
+                    TermQuery.of(t -> t.field("createBy")
+                            .value(idUs))._toQuery()
+            );
+        }
         List<FunctionScore> functionScores = new ArrayList<>();
         if (checkType.equalsIgnoreCase("forme")) {
             // Tìm kiếm theo sở thích + khoảng cách
-            functionScores.addAll(buildForMeScore(userID, request));
+            functionScores.addAll(buildForMeScore(idUser, request));
         } else if (checkType.equalsIgnoreCase("forShop")) {
             functionScores.addAll(buildForShop(request));
         } else if (checkType.equalsIgnoreCase("forSearch")) {
-            functionScores.addAll(buildForSearch(userID, request));
+            functionScores.addAll(buildForSearch(idUser, request));
         }
+
+
         return FunctionScoreQuery.of(
                 f -> f.query(boolQuery.build()._toQuery())
                         .functions(functionScores)
-                        .boostMode(FunctionBoostMode.Multiply)
                         .boostMode(FunctionBoostMode.Sum)
         );
     }
@@ -137,7 +198,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                     buildScoringFunction(
                             "location",
                             null,
-                            10.0,
+                            10,
                             userLocation,
                             "5",
                             null,
@@ -150,49 +211,85 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         // 2. Cửa hàng yêu thích của người dùng
         if (userID != null && !userID.isEmpty()) {
             List<String> favoriteShopIds = getFavoriteShopIds(userID);
-            if (!favoriteShopIds.isEmpty()) {
+            if (favoriteShopIds != null && !favoriteShopIds.isEmpty()) {
                 // 3. Đề xuất cửa hàng dựa trên danh mục yêu thích
-//                List<String> favoriteCategories = getFavoriteCategories(userID);
-//                if (!favoriteCategories.isEmpty()) {
-//                    functionScores.add(buildScoringFunction(
-//                            "path-list",
-//                            "categorySearchBaseModel.name",
-//                            8.0, // Điểm số ưu tiên
-//                            favoriteCategories,
-//                            "categorySearchBaseModel", // Path đến nested field
-//                            null,
-//                            null,
-//                            null
-//                    ));
-//                }
+                List<String> favoriteCategories = getFavoriteCategories(favoriteShopIds);
+                if (!favoriteCategories.isEmpty()) {
+                    functionScores.add(buildScoringFunction(
+                            "path-list",
+                            "categorySearchBaseModel.name",
+                            6, // Điểm số ưu tiên
+                            favoriteCategories,
+                            "categorySearchBaseModel", // Path đến nested field
+                            null,
+                            null,
+                            null
+                    ));
+                }
             }
         }
-
-        String ratingScript = "double point = doc['point'].value; " +
-                "int countReview = doc['countReview'].value; " +
-                "return (point * countReview) / (countReview + 1);";
+        // Công thức tính điểm: (điểm * số lượng đánh giá) / (số lượng đánh giá + 1)
+        // Công thức này giúp cân bằng giữa điểm cao và số lượng đánh giá thấp
+        String ratingScript = "double point = doc['point'].value; long countReview = " +
+                "doc['countReview'].value; return (point) / (countReview + 1);";
         functionScores.add(buildScoringFunction(
                 "scripts",
                 null,
-                8.0,
-                List.of(),
+                2,
+                null,
                 null,
                 null,
                 ratingScript,
                 null
         ));
         // 4. Cửa hàng có nhiều lượt bình chọn
+        // Sử dụng logarithm để giảm ảnh hưởng của số lượng đánh giá quá lớn
         functionScores.add(buildScoringFunction(
                 "scripts",
                 null,
-                7.0,
-                List.of("100"), // Số lượt bình chọn tối thiểu
+                2,
+                List.of(2), // Số lượt bình chọn tối thiểu
                 null,
                 null,
-                "doc['reviewCount'].value >= params.minReviews ? Math.log10(doc['reviewCount'].value) : 0.5",
+                "long countReview = doc['countReview'].value; return countReview >= params.minReviews ? Math.log10(countReview) : 0.5",
                 "minReviews"
         ));
-        return null;
+        return functionScores;
+    }
+
+
+    // Trích suất danh muc theo sở thích của người dùng
+    private List<String> getFavoriteCategories(List<String> favoriteShopIds) {
+        try {
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+            // 2. Thêm điều kiện "must" với truy vấn TermsQuery để lọc các cửa hàng có ID nằm trong danh sách favoriteShopIds
+            boolQuery.must(
+                    TermsQuery.of(t -> t.field("id").terms(
+                            TermsQueryField.of(f -> f.value(
+                                    favoriteShopIds.stream()
+                                            .map(FieldValue::of) // Chuyển đổi danh sách ID
+                                            .collect(Collectors.toList())
+                            ))
+                    ))._toQuery()
+            );
+            SearchResponse<ShopSearchModel> searchResponse = elasticsearchClient.search(s -> s
+                            .index("shop") // Chỉ mục Elasticsearch
+                            .query(boolQuery.build()._toQuery()) // Truy vấn lấy tất cả dữ liệu
+                            .size(favoriteShopIds.size()), // Giới hạn số lượng bản ghi trả về
+                    ShopSearchModel.class // Kiểu dữ liệu ánh xạ kết quả
+            );
+            return searchResponse.hits().hits()
+                    .stream().map(
+                            hit -> hit.source()
+                    ).filter(
+                            shop -> shop != null && shop.getCategorySearchBaseModel() != null
+                    ).map(
+                            s -> s.getCategorySearchBaseModel().getName()
+                    ).distinct().collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error getFavoriteCategories - {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
 
@@ -204,34 +301,20 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         List<FunctionScore> functionScores = new ArrayList<>();
         if (request.getIdShop() != null && !request.getIdShop().isEmpty()) {
             // Lấy danh mục của cửa hàng hiện tại (giả sử có phương thức hỗ trợ)
-            List<String> shopCategories = getShopCategories(request.getIdShop());
+            List<String> shopCategories = getFavoriteCategories(List.of(request.getIdShop()));
             if (shopCategories != null && !shopCategories.isEmpty()) {
                 functionScores.add(buildScoringFunction(
                         "path-list",
-                        "shopCategories.categoryId",
-                        10.0,
+                        "categorySearchBaseModel.name",
+                        20, // Điểm số ưu tiên
                         shopCategories,
-                        "shopCategories",
+                        "categorySearchBaseModel", // Path đến nested field
                         null,
                         null,
                         null
                 ));
             }
 
-            // Lấy khu vực của cửa hàng hiện tại
-            String shopRegion = getShopRegion(request.getIdShop());
-            if (shopRegion != null && !shopRegion.isEmpty()) {
-                functionScores.add(buildScoringFunction(
-                        "normal",
-                        "region",
-                        9.0,
-                        List.of(shopRegion),
-                        null,
-                        null,
-                        null,
-                        null
-                ));
-            }
         }
         // 2. Ưu tiên vị trí nếu có
         if (request.getLatitude() != null && request.getLongitude() != null) {
@@ -243,7 +326,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             functionScores.add(buildScoringFunction(
                     "location",
                     null,
-                    8.0,
+                    10,
                     userLocation,
                     "15", // Khoảng cách tối đa 15km cho cửa hàng tương tự
                     null,
@@ -252,25 +335,27 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             ));
         }
         // 3. Cửa hàng có đánh giá cao
+        String ratingScript = "double point = doc['point'].value; long countReview = " +
+                "doc['countReview'].value; return (point) / (countReview + 1);";
         functionScores.add(buildScoringFunction(
-                "normal",
-                "averageRating",
-                7.0,
-                List.of("4.0"), // Ưu tiên cửa hàng có đánh giá từ 4.0 trở lên
+                "scripts",
+                null,
+                2,
                 null,
                 null,
                 null,
+                ratingScript,
                 null
         ));
         // 4. Cửa hàng có nhiều lượt bình chọn
         functionScores.add(buildScoringFunction(
                 "scripts",
                 null,
-                6.0,
-                List.of("50"), // Số lượt bình chọn tối thiểu
+                2,
+                List.of(2), // Số lượt bình chọn tối thiểu
                 null,
                 null,
-                "doc['reviewCount'].value >= params.minReviews ? Math.log10(doc['reviewCount'].value) : 0.5",
+                "long countReview = doc['countReview'].value; return countReview >= params.minReviews ? Math.log10(countReview) : 0.5",
                 "minReviews"
         ));
 
@@ -308,7 +393,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             functionScores.add(buildScoringFunction(
                     "path",
                     "favoriteShops.userId",
-                    9.0,
+                    4,
                     List.of(userID),
                     "favoriteShops",
                     null,
@@ -320,7 +405,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         functionScores.add(buildScoringFunction(
                 "normal",
                 "averageRating",
-                7.0,
+                3,
                 List.of("4.0"),
                 null,
                 null,
@@ -400,46 +485,45 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                         fs -> fs.filter(prangeQuery.build()._toQuery()).weight(score)
                 );
             case "scripts":
-                return FunctionScore.of(
-                        fs -> fs.scriptScore(ss -> ss.script(
-                                s -> s.inline(v -> v.source(script).params(param, JsonData.of(data.get(0))))
-                        )).weight(score)
-                );
+                if (param != null && data != null && !data.isEmpty()) {
+                    // Trường hợp có tham số
+                    return FunctionScore.of(
+                            fs -> fs.scriptScore(ss -> ss.script(
+                                    s -> s.inline(v -> v.source(script).params(param, JsonData.of(data.get(0))))
+                            )).weight(score)
+                    );
+                } else {
+                    // Trường hợp không có tham số
+                    return FunctionScore.of(
+                            fs -> fs.scriptScore(ss -> ss.script(
+                                    s -> s.inline(v -> v.source(script))
+                            )).weight(score)
+                    );
+                }
             // XỬ dụng công thức Haversine tính khoảng cách
             case "location":
                 // Giả sử data[0] là latitude, data[1] là longitude
                 if (data.size() >= 2) {
-                    String locationScript = "double lat1 = doc['location.lat'].value;" +
-                            "double lon1 = doc['location.lon'].value;" +
-                            "double lat2 = params.lat;" +
-                            "double lon2 = params.lon;" +
-                            // Công thức Haversine để tính khoảng cách
-                            "double dLat = Math.toRadians(lat2 - lat1);" +
-                            "double dLon = Math.toRadians(lon2 - lon1);" +
-                            "double a = Math.sin(dLat/2) * Math.sin(dLat/2) + " +
-                            "Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * " +
-                            "Math.sin(dLon/2) * Math.sin(dLon/2);" +
-                            "double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));" +
-                            "double distance = 6371 * c;" + // Bán kính Trái Đất (km)
-                            // Chuyển đổi thành điểm số: Càng gần càng cao
-                            "double maxDistance = " + (path != null ? path : "10") + ";" + // Khoảng cách tối đa (km)
-                            "if (distance <= maxDistance) {" +
-                            "  return maxDistance / (distance + 1);" + // +1 để tránh chia cho 0
-                            "} else {" +
-                            "  return 1;" + // Điểm tối thiểu cho các vị trí xa
-                            "}";
-
-                    Map<String, JsonData> locationParams = new HashMap<>();
-                    locationParams.put("lat", JsonData.of(Double.parseDouble(data.get(0).toString())));
-                    locationParams.put("lon", JsonData.of(Double.parseDouble(data.get(1).toString())));
+                    String scriptString = "double distance = doc['location'].arcDistance(params.lat, params.lon) / 1000;" +
+                            "double maxDistance = params.maxDistance;" +
+                            "return distance <= maxDistance ? (maxDistance / (distance + 1)) : 1;";
+                    double maxDistance = path != null ? Double.parseDouble(path) : 10.0; // 🟢 Chuyển `path` thành số
+                    Map<String, JsonData> params = new HashMap<>();
+                    params.put("lat", JsonData.of(Double.parseDouble(data.get(0).toString())));
+                    params.put("lon", JsonData.of(Double.parseDouble(data.get(1).toString())));
+                    params.put("maxDistance", JsonData.of(maxDistance));
 
                     return FunctionScore.of(fs -> fs
-                            .scriptScore(ss -> ss
+                            .scriptScore(ScriptScoreFunction.of(scriptFn -> scriptFn
                                     .script(s -> s
-                                            .inline(v -> v
-                                                    .source(locationScript)
-                                                    .params(locationParams))))
-                            .weight(score));
+                                            .inline(i -> i
+                                                    .source(scriptString)
+                                                    .params(params)
+                                            )
+                                    )
+                            ))
+                            .weight(score)
+                    );
                 }
                 // Trường hợp không đủ dữ liệu vị trí
                 return FunctionScore.of(fs -> fs.weight(1.0));
@@ -461,10 +545,12 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return "";
     }
 
-    /** Phương thức tìm kiếm dựa trên các yêu cầu
+    /**
+     * Phương thức tìm kiếm dựa trên các yêu cầu
+     *
      * @param shopSearchRequest
      * @return searchRequest
-     * */
+     */
     private SearchRequest buildSearchQuery(ShopSearchRequest shopSearchRequest) {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
         if (shopSearchRequest.getKeyword() != null && !shopSearchRequest.getKeyword().isEmpty()) {
@@ -577,23 +663,23 @@ public class ShopSearchServiceImpl implements ShopSearchService {
      * @param shopSearchRequest The request containing search filter parameters
      * @return A BoolQuery.Builder with all applied filters
      */
-        private BoolQuery.Builder buildFilterSearch(ShopSearchRequest shopSearchRequest) {
-            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-            addCategoryFilter(boolQuery, shopSearchRequest.getCategoryId());
-            addTermFilter(boolQuery, "city", shopSearchRequest.getCity());
-            addTermFilter(boolQuery, "district", shopSearchRequest.getDistrict());
-            applyScoreFilter(boolQuery, shopSearchRequest.getScoreReview());
-            addCloseTimeFilter(boolQuery, shopSearchRequest.getCloseTime());
-            return boolQuery;
-        }
+    private BoolQuery.Builder buildFilterSearch(ShopSearchRequest shopSearchRequest) {
+        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+        addCategoryFilter(boolQuery, shopSearchRequest.getCategoryId());
+        addTermFilter(boolQuery, "city", shopSearchRequest.getCity());
+        addTermFilter(boolQuery, "district", shopSearchRequest.getDistrict());
+        applyScoreFilter(boolQuery, shopSearchRequest.getScoreReview());
+        addCloseTimeFilter(boolQuery, shopSearchRequest.getCloseTime());
+        return boolQuery;
+    }
 
     private void addCloseTimeFilter(BoolQuery.Builder boolQuery, String closeTime) {
-        if(closeTime == null || closeTime.isEmpty()) {
+        if (closeTime == null || closeTime.isEmpty()) {
             return;
         }
 
         // Chuẩn hóa định dạng thời gian (thêm 0 phía trước nếu cần)
-       final String closeTimes = normalizeTimeFormat(closeTime);
+        final String closeTimes = normalizeTimeFormat(closeTime);
 
         // Sử dụng nested query để lọc theo điều kiện
         NestedQuery nestedQuery = NestedQuery.of(
@@ -620,7 +706,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
     }
 
     private void addTermFilter(BoolQuery.Builder boolQuery, String filed, String value) {
-        if(value == null || value.isEmpty()) {
+        if (value == null || value.isEmpty()) {
             return;
         }
         String normalizedValue = Normalizer.normalize(value.trim(), Normalizer.Form.NFC);
@@ -759,6 +845,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         // Bulk index documents to Elasticsearch
         bulkIndexShops(searchModels);
     }
+
     private ShopSearchModel convertToSearchModel(ShopModel shopModel) {
         return ShopSearchModel.builder()
                 .id(shopModel.getId())
