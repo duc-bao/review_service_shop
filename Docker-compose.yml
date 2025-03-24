@@ -28,6 +28,19 @@ services:
     command: redis-server --appendonly yes --requirepass 2904 # Đặt mật khẩu cho Redis và bật tính năng ghi dữ liệu
     networks:
       - my_network
+  # Logstash
+  logstash:
+    container_name: logstash-review
+    image: logstash:8.14.3
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - elasticsearch
+    networks:
+      - my_network
   #elasticsearch
   elasticsearch:
     container_name: elk-review

@@ -29,5 +29,5 @@ public class ShopSuggestRequest {
 
     private String idShop;
 
-
+    private String checkType;
 }

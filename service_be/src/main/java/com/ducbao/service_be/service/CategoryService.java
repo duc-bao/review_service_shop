@@ -73,22 +73,22 @@ public class CategoryService {
 
     public ResponseEntity<ResponseDto<CategoryResponse>> updateCategory(CategoryRequest categoryRequest, String id) {
         CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
-        if (categoryModel.getParentId() != null) {
-            CategoryModel parent = categoryRepository.findById(categoryModel.getParentId()).orElse(null);
-            if (parent == null) {
-                return ResponseBuilder.badRequestResponse(
-                        "Không tìm thấy thể loại cha",
-                        StatusCodeEnum.CATEGORY1002
-                );
-            }
-            if (!parent.getType().equals(categoryModel.getType())) {
-                return ResponseBuilder.badRequestResponse(
-                        "Không đúng thể loại cha",
-                        StatusCodeEnum.CATEGORY1002
-                );
-            }
-            categoryModel.setParentId(parent.getId());
-        }
+//        if (categoryModel.getParentId() != null) {
+//            CategoryModel parent = categoryRepository.findById(categoryModel.getParentId()).orElse(null);
+//            if (parent == null) {
+//                return ResponseBuilder.badRequestResponse(
+//                        "Không tìm thấy thể loại cha",
+//                        StatusCodeEnum.CATEGORY1002
+//                );
+//            }
+//            if (!parent.getType().equals(categoryModel.getType())) {
+//                return ResponseBuilder.badRequestResponse(
+//                        "Không đúng thể loại cha",
+//                        StatusCodeEnum.CATEGORY1002
+//                );
+//            }
+//            categoryModel.setParentId(parent.getId());
+//        }
         mapper.maptoObject(categoryRequest, categoryModel);
         try {
             categoryModel = categoryRepository.save(categoryModel);
