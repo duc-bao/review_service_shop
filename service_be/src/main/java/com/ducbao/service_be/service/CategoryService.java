@@ -10,6 +10,7 @@ import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.dto.response.TagResponse;
 import com.ducbao.service_be.model.entity.CategoryModel;
+import com.ducbao.service_be.model.entity.ServiceModel;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.CategoryRepository;
 import com.ducbao.service_be.repository.ShopRepository;
@@ -21,9 +22,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +42,7 @@ public class CategoryService {
     private final UserService userService;
     private final ShopRepository shopRepository;
     private final CommonMapper mapper;
+    private final MongoTemplate mongoTemplate;
 
     public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(CategoryRequest categoryRequest) {
         CategoryModel categoryModel = mapper.map(categoryRequest, CategoryModel.class);
@@ -182,7 +188,7 @@ public class CategoryService {
 
         if (categoryModel.getParentId() != null) {
             return ResponseBuilder.badRequestResponse(
-                    "Không thể xóa danh sách tag list",
+                    "Bạn không được phép xóa thẻ này",
                     StatusCodeEnum.CATEGORY1002
             );
         }
@@ -229,97 +235,53 @@ public class CategoryService {
      * Lấy danh sách thể loại với chỉ thằng thể loại gốc
      */
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAll(String s, String q, String filter, int limit, int page) {
-        Sort sort = Sort.by(Sort.Direction.ASC, s);
-        Pageable pageable = PageRequest.of(page - 1, limit, sort);
-        if (!Util.isNullOrEmpty(q) && !Util.isNullOrEmpty(filter)) {
-            JSONObject jsonObject = new JSONObject(filter);
-            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndTypeAndIsDelete(q, jsonObject.get("type").toString(), false, pageable);
-            List<CategoryModel> categoryModels = categoryResponses.getContent();
+        try {
+            Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
 
-            List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
-                    categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
-            ).collect(Collectors.toList());
 
-            MetaData metaData = MetaData.builder()
-                    .totalPage(categoryResponses.getTotalPages())
-                    .currentPage(page)
-                    .total(categoryResponses.getTotalElements())
-                    .pageSize(limit)
-                    .build();
+            if(s != null && !s.isEmpty() ) {
+                String field = s.replace("-", "");
+                Sort.Direction direction = s.startsWith("-") ? Sort.Direction.ASC : Sort.Direction.DESC;
+                sort = Sort.by(direction, field);
+            }
+            Pageable pageable = PageRequest.of(page - 1, limit, sort);
+            Criteria criteria = new Criteria();
+            if(q != null && !q.isEmpty()) {
+                criteria.and("name").regex(q, "i");
+            }
+            if(filter != null && !filter.isEmpty()) {
+                criteria.and("type").where(filter);
+            }
+            criteria.and("parentId").isNull();
+            criteria.and("isDelete").is(false);
+            Query query = new Query(criteria).with(pageable);
+            List<CategoryModel> categoryModels = mongoTemplate.find(query, CategoryModel.class);
+            long totalElements = mongoTemplate.count(query.skip(0).limit(0), CategoryModel.class);
 
-            return ResponseBuilder.okResponse(
-                    "Lấy thành công danh sách thể loại với nội dung tìm kiếm và lọc",
-                    categoryResponseList,
-                    metaData,
-                    StatusCodeEnum.CATEGORY1006
-            );
-        }
-
-        if (!Util.isNullOrEmpty(q)) {
-            Page<CategoryModel> categoryResponses = categoryRepository.findByNameContainingAndIsDelete(q, false, pageable);
-            List<CategoryModel> categoryModels = categoryResponses.getContent();
-
-            List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
-                    categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
-            ).collect(Collectors.toList());
+            List<CategoryResponse> categoryResponses = categoryModels.stream()
+                    .map(
+                            categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
+                    ).collect(Collectors.toList());
 
             MetaData metaData = MetaData.builder()
-                    .totalPage(categoryResponses.getTotalPages())
-                    .currentPage(page)
-                    .total(categoryResponses.getTotalElements())
+                    .total(totalElements)
                     .pageSize(limit)
+                    .totalPage((int) Math.ceil((double) totalElements / limit))
+                    .currentPage(page)
                     .build();
-
             return ResponseBuilder.okResponse(
-                    "Lấy thành công danh sách thể loại với nội dung tìm kiếm",
-                    categoryResponseList,
+                    "Lấy danh sách thể loại thành công",
+                    categoryResponses,
                     metaData,
-                    StatusCodeEnum.CATEGORY1004
+                    StatusCodeEnum.CATEGORY1000
+            );
+        }catch (Exception e){
+            log.error("Error getAll()");
+            return ResponseBuilder.badRequestResponse(
+                    "Lấy danh sách thể loại không thành công",
+                    StatusCodeEnum.CATEGORY1002
             );
         }
-
-        if (!Util.isNullOrEmpty(filter)) {
-            JSONObject jsonObject = new JSONObject(filter);
-
-            Page<CategoryModel> categoryResponses = categoryRepository.findByTypeAndIsDelete(jsonObject.get("type").toString(), false, pageable);
-            List<CategoryModel> categoryModels = categoryResponses.getContent();
-
-            List<CategoryResponse> categoryResponseList = categoryModels.stream().map(
-                    categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
-            ).collect(Collectors.toList());
-
-            MetaData metaData = MetaData.builder()
-                    .totalPage(categoryResponses.getTotalPages())
-                    .currentPage(page)
-                    .total(categoryResponses.getTotalElements())
-                    .pageSize(limit)
-                    .build();
-
-            return ResponseBuilder.okResponse(
-                    "Lấy thành công danh sách thể loại với lọc",
-                    categoryResponseList,
-                    metaData,
-                    StatusCodeEnum.CATEGORY1005
-            );
-        }
-        Page<CategoryModel> categoryModels = categoryRepository.findAllByIsDelete(false, pageable);
-        List<CategoryModel> categoryModels1 = categoryModels.getContent();
-        List<CategoryResponse> categoryResponseList = categoryModels1.stream().map(
-                categoryModel -> mapper.map(categoryModel, CategoryResponse.class)
-        ).collect(Collectors.toList());
-
-        MetaData metaData = MetaData.builder()
-                .totalPage(categoryModels.getTotalPages())
-                .currentPage(page)
-                .total(categoryModels.getTotalElements())
-                .pageSize(limit)
-                .build();
-        return ResponseBuilder.okResponse(
-                "Lấy thành công danh sách thể loại",
-                categoryResponseList,
-                metaData,
-                StatusCodeEnum.CATEGORY1003
-        );
     }
 
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllParent(){

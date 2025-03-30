@@ -29,7 +29,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/cms/categories")
-@RolesAllowed(value = "ADMIN")
+//@RolesAllowed(value = "ADMIN")
 @Slf4j
 public class CategoryCMSController {
     private static final Logger log = LoggerFactory.getLogger(CategoryCMSController.class);

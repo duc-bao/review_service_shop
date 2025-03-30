@@ -16,6 +16,7 @@ import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.model.entity.*;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.*;
+import com.ducbao.service_be.service.elk.ShopSearchService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,7 @@ public class ShopService {
     private final MongoTemplate mongoTemplate;
     private final ADSSubscriptionRepository adsSubscriptionRepository;
     private final AdvertisementRepository advertisementRepository;
+    private final ShopSearchService shopSearchService;
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
 //        String idUser = userService.userId();
@@ -531,6 +533,7 @@ public class ShopService {
         ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
         mapper.maptoObject(serviceRequest, serviceModel);
         try {
+            shopSearchService.saveShop(shopModel.getId());
             serviceModel = serviceRepository.save(serviceModel);
             return ResponseBuilder.okResponse(
                     "Cập nhật dịch vụ thành công",

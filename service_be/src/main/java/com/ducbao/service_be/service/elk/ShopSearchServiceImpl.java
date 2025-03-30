@@ -371,6 +371,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         // 1. Khớp chính xác với tên cửa hàng (nếu có từ khóa tìm kiếm)
         // Lưu ý: Phần này thường được xử lý trong truy vấn chính, không ở FunctionScore
         // 2. Ưu tiên vị trí
+
         if (request.getLatitude() != null && request.getLongitude() != null) {
             List<Object> userLocation = Arrays.asList(
                     request.getLatitude().doubleValue(),
@@ -390,50 +391,48 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         }
         // 3. Cửa hàng yêu thích của người dùng
         if (userID != null && !userID.isEmpty()) {
-            functionScores.add(buildScoringFunction(
-                    "path",
-                    "favoriteShops.userId",
-                    4,
-                    List.of(userID),
-                    "favoriteShops",
-                    null,
-                    null,
-                    null
-            ));
+            List<String> favoriteShopIds = getFavoriteShopIds(userID);
+            if (favoriteShopIds != null && !favoriteShopIds.isEmpty()) {
+                // 3. Đề xuất cửa hàng dựa trên danh mục yêu thích
+                List<String> favoriteCategories = getFavoriteCategories(favoriteShopIds);
+                if (!favoriteCategories.isEmpty()) {
+                    functionScores.add(buildScoringFunction(
+                            "path-list",
+                            "categorySearchBaseModel.name",
+                            6, // Điểm số ưu tiên
+                            favoriteCategories,
+                            "categorySearchBaseModel", // Path đến nested field
+                            null,
+                            null,
+                            null
+                    ));
+                }
+            }
         }
-        // 5. Cửa hàng có đánh giá cao
-        functionScores.add(buildScoringFunction(
-                "normal",
-                "averageRating",
-                3,
-                List.of("4.0"),
-                null,
-                null,
-                null,
-                null
-        ));
-        // 6. Cửa hàng có nhiều lượt bình chọn
+        // 3. Cửa hàng có đánh giá cao
+        String ratingScript = "double point = doc['point'].value; long countReview = " +
+                "doc['countReview'].value; return (point) / (countReview + 1);";
         functionScores.add(buildScoringFunction(
                 "scripts",
                 null,
-                6.0,
-                List.of("50"),
+                2,
                 null,
                 null,
-                "doc['reviewCount'].value >= params.minReviews ? Math.log10(doc['reviewCount'].value) : 0.5",
+                null,
+                ratingScript,
+                null
+        ));
+        // 4. Cửa hàng có nhiều lượt bình chọn
+        functionScores.add(buildScoringFunction(
+                "scripts",
+                null,
+                2,
+                List.of(2), // Số lượt bình chọn tối thiểu
+                null,
+                null,
+                "long countReview = doc['countReview'].value; return countReview >= params.minReviews ? Math.log10(countReview) : 0.5",
                 "minReviews"
         ));
-//        // 7. Cửa hàng phổ biến (có nhiều lượt truy cập)
-//        functionScores.add(buildScoringFunction(
-//                "normal",
-//                "popularityScore",
-//                5.0,
-//                List.of("high"),
-//                null,
-//                null,
-//                null,
-//                null
-//        ));
         return functionScores;
     }
 
@@ -500,7 +499,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                             )).weight(score)
                     );
                 }
-            // XỬ dụng công thức Haversine tính khoảng cách
+                // XỬ dụng công thức Haversine tính khoảng cách
             case "location":
                 // Giả sử data[0] là latitude, data[1] là longitude
                 if (data.size() >= 2) {
@@ -530,19 +529,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             default:
                 throw new IllegalArgumentException("Invalid typeScore: " + typeScore);
         }
-    }
-
-    // Các phương thức hỗ trợ (cần được implement tùy theo thiết kế hệ thống)
-    private List<String> getShopCategories(String shopId) {
-        // TODO: Implement logic to get categories of the shop
-        // Đây là phương thức giả định, bạn cần implement theo cách của mình
-        return new ArrayList<>();
-    }
-
-    private String getShopRegion(String shopId) {
-        // TODO: Implement logic to get region of the shop
-        // Đây là phương thức giả định, bạn cần implement theo cách của mình
-        return "";
     }
 
     /**
@@ -822,6 +808,60 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         )._toQuery();
 
         return BoolQuery.of(b -> b.should(categorySearchNested, multiMatchQuery))._toQuery();
+    }
+
+    @Override
+    public void saveShop(String id) {
+        try {
+            ShopSearchModel searchModel = getShop(id);
+            shopSearchRepository.save(searchModel);
+        } catch (Exception e) {
+            log.error("Error saving shop elasticsearch with ID: " + id, e);
+            throw new RuntimeException("Failed to save company", e);
+        }
+    }
+
+    private ShopSearchModel getShop(String id) {
+        ShopSearchModel shopSearchModel = new ShopSearchModel();
+        Optional<ShopModel> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            return shopSearchModel;
+        }
+
+        ShopModel shop = shopOptional.get();
+        shopSearchModel = commonMapper.map(shop, ShopSearchModel.class);
+        if (shop.getLongitude() != null && shop.getLatitude() != null) {
+            shopSearchModel.setLocation(new GeoPoint(
+                    shop.getLatitude().doubleValue(),
+                    shop.getLongitude().doubleValue()
+            ));
+        }
+
+        // Ánh xạ CategoryModel
+        Optional<CategoryModel> categoryOptional = categoryRepository.findById(shop.getIdCategory());
+        if (categoryOptional.isPresent()) {
+            CategoryModel categoryModel = categoryOptional.get();
+            shopSearchModel.setCategorySearchBaseModel(
+                    commonMapper.map(categoryModel, CategorySearchBaseModel.class)
+            );
+        }
+        List<ServiceModel> serviceModels = serviceRepository.findAllByIdShop(shop.getId());
+        List<ServiceSearchBaseModel> serviceSearchBaseModels = serviceModels.stream()
+                        .map(
+                                serviceModel -> commonMapper.map(serviceModel, ServiceSearchBaseModel.class)
+                        ).collect(Collectors.toList());
+        shopSearchModel.setServiceSearchBaseModels(serviceSearchBaseModels);
+
+        List<OpenTimeModel> openTimeModels = shop.getListIdOpenTime().stream()
+                .map(openTimeId -> openTimeRepository.findById(openTimeId))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+        List<OpenTimeSearchBaseModel> openTimeSearchBaseModels = openTimeModels.stream().map(
+                openTimeModel -> commonMapper.map(openTimeModel, OpenTimeSearchBaseModel.class)
+        ).collect(Collectors.toList());
+        shopSearchModel.setOpenTimeSearchBaseModels(openTimeSearchBaseModels);
+        return shopSearchModel;
     }
 
     /**

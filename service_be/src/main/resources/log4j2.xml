@@ -7,69 +7,95 @@
     </Properties>
 
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </Console>
-        <!-- Đưa log ra file nếu quá tải thì xóa-->
-        <RollingFile name="FileAppender"
-                     fileName="${APP_LOG_ROOT}/application.log"
-                     filePattern="${APP_LOG_ROOT}/application-%d{yyyy-MM-dd}-%i.log">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+        <!-- INFO File appender -->
+        <RollingFile name="InfoFile" fileName="./logs/info/info.log"
+                     filePattern="./logs/info/info.%d{yyyy-MM-dd}.%i.log">
+            <Filters>
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <PatternLayout>
+                <pattern>%-5level %d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%X{module}] %-75logger{75}:%-4line | %msg%throwable%n</pattern>
+            </PatternLayout>
             <Policies>
-                <SizeBasedTriggeringPolicy size="10MB" />
-                <TimeBasedTriggeringPolicy interval="1" />
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="10"/>
+            <DefaultRolloverStrategy max="1000">
+                <Delete basePath="./logs/info" maxDepth="1">
+                    <IfFileName glob="info.*.log"/>
+                    <IfLastModified age="180d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- WARN File appender -->
+        <RollingFile name="WarnFile" fileName="./logs/warn/warn.log"
+                     filePattern="./logs/warn/warn.%d{yyyy-MM-dd}.%i.log">
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <PatternLayout>
+                <pattern>%-5level %d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%X{module}] %-75logger{75}:%-4line | %msg%throwable%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+
+            <DefaultRolloverStrategy max="1000">
+                <Delete basePath="./logs/warn" maxDepth="1">
+                    <IfFileName glob="warn.*.log"/>
+                    <IfLastModified age="180d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- ERROR File appender -->
+        <RollingFile name="ErrorFile" fileName="./logs/error/error.log"
+                     filePattern="./logs/error/error.%d{yyyy-MM-dd}.%i.log">
+            <Filters>
+                <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <PatternLayout>
+                <pattern>%-5level %d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%X{module}] %-75logger{75}:%-4line | %msg%throwable%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1000">
+                <Delete basePath="./logs/error" maxDepth="1">
+                    <IfFileName glob="error.*.log"/>
+                    <IfLastModified age="180d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
         <!-- Đánh dấu log này của ứng dụng Spring boot  -->
-        <Socket name="LogstashSocket" host="logstash" port="5044">
+        <Socket name="LogstashSocket" host="localhost" port="5044" protocol="TCP">
             <JsonLayout compact="true" eventEol="true">
-                <KeyValuePair key="type" value="spring-boot" />
-                <KeyValuePair key="application" value="service_be" />
+                <KeyValuePair key="type" value="spring-boot"/>
+                <KeyValuePair key="application" value="service_be"/>
             </JsonLayout>
         </Socket>
     </Appenders>
 
+    <!-- Root logger configuration -->
     <Loggers>
         <Root level="info">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="InfoFile"/>
+            <AppenderRef ref="WarnFile"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="LogstashSocket"/>
         </Root>
 
-        <!-- Application-specific loggers -->
+        <!-- Application-specific logger -->
         <Logger name="com.ducbao" level="debug" additivity="false">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
-        </Logger>
-
-        <!-- Spring Framework loggers -->
-        <Logger name="org.springframework" level="info" additivity="false">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
-        </Logger>
-
-        <!-- MongoDB loggers -->
-        <Logger name="org.mongodb.driver" level="info" additivity="false">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
-        </Logger>
-
-        <!-- Elasticsearch loggers -->
-        <Logger name="org.elasticsearch" level="info" additivity="false">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
-        </Logger>
-
-        <!-- Redis loggers -->
-        <Logger name="org.springframework.data.redis" level="info" additivity="false">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="FileAppender" />
-            <AppenderRef ref="LogstashSocket" />
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="InfoFile"/>
+            <AppenderRef ref="WarnFile"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="LogstashSocket"/>
         </Logger>
     </Loggers>
 </Configuration>

@@ -3,6 +3,7 @@ package com.ducbao.service_be.model.dto.response;
 import com.ducbao.common.model.enums.CategoryEnums;
 import com.ducbao.common.model.enums.StateServiceEnums;
 import com.ducbao.common.model.enums.StatusShopEnums;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class ShopSearchResponse {
     private String avatar;
 
     private String email;
-
+    @JsonProperty("isVery")
     private boolean isVery;
 
     private String description;
@@ -46,9 +47,13 @@ public class ShopSearchResponse {
 
     private CategoryResponse categoryResponse;
 
+    @JsonProperty("isDelete")
     private boolean isDelete;
 
     private List<ServiceResponse> serviceResponses;
 
     private List<OpenTimeResponse> openTimeResponses;
+
+    private Integer countReview;
+    private Double point;
 }

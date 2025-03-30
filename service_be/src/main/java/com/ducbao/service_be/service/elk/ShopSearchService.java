@@ -12,4 +12,5 @@ import java.util.List;
 public interface ShopSearchService {
    ResponseEntity<ResponseDto<List<ShopSearchResponse>>> searchShopService(ShopSearchRequest shopSearchRequest);
    ResponseEntity<ResponseDto<List<ShopSearchResponse>>> suggestShopService(ShopSuggestRequest shopSearchRequest);
+   public void saveShop(String id);
 }
