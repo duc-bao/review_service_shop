@@ -121,8 +121,9 @@ public class FavoriteService {
         );
     }
 
-    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(String id) {
-        FavoriteModel favoriteModel = favoriteRepository.findById(id).orElse(null);
+    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(FavoriteRequest favoriteRequest) {
+        String idUser = userService.userId();
+        FavoriteModel favoriteModel = favoriteRepository.findByIdUserAndIdShop(idUser,favoriteRequest.getIdShop());
         if (favoriteModel == null) {
             return ResponseBuilder.okResponse(
                     "Không tìm thấy cửa hàng yêu thích",

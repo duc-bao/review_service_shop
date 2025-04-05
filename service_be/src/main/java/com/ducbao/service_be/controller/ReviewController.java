@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.constant.SwaggerConstant;
 import com.ducbao.common.model.dto.ResponseDto;
+import com.ducbao.service_be.model.dto.request.ReviewGetAllRequest;
 import com.ducbao.service_be.model.dto.request.ReviewReactionRequest;
 import com.ducbao.service_be.model.dto.request.ReviewRequest;
 import com.ducbao.service_be.model.dto.request.ReviewUpdateRequest;
@@ -208,12 +209,10 @@ public class ReviewController {
                        }
                     """)))
     })
-    @GetMapping("/getall/shop/{idShop}")
-    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> findByShop(@PathVariable("idShop") String idShop,
-                                                                            @RequestParam(value = "limit", defaultValue = "12") int limit,
-                                                                            @RequestParam(value = "page", defaultValue = "1") int page,
-                                                                            @RequestParam(value = "sort", defaultValue = "updateAt") String sort) {
-        return reviewService.getListReviewByIdShop(idShop, limit, page, sort);
+    @PostMapping("/getall/shop/{idShop}")
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> findByShop(@RequestBody ReviewGetAllRequest request) {
+        log.info("GetListReviewByIdShop - {}" , request.toString());
+        return reviewService.getListReviewByIdShop(request);
     }
 
     @SecurityRequirements({})

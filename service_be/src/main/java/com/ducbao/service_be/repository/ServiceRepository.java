@@ -17,7 +17,7 @@ public interface ServiceRepository extends MongoRepository<ServiceModel, String>
     Page<ServiceModel> findByTypeAndIsDelete(String t, boolean isDelete, Pageable pageable);
     Page<ServiceModel> findAllByIsDelete(boolean isDelete, Pageable pageable);
     List<ServiceModel> findAllByIdShop(String idShop);
-
+    Page<ServiceModel> findAllByIdShopAndIsDelete(String idShop,boolean isDelete, Pageable pageable);
 
     @Query("{ 'idShop': ?0, " +
             "?#{ [1] != null ? {'name': { $regex: [1], $options: 'i' }} : {}} " +

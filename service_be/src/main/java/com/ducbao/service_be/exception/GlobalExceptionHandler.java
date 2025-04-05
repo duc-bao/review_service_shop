@@ -3,6 +3,7 @@ package com.ducbao.service_be.exception;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -69,4 +70,15 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.ok(dto);
     }
+    @ExceptionHandler(value = IncorrectResultSizeDataAccessException.class)
+    public <T> ResponseEntity<ResponseDto<T>> handleIncorrectResultSizeDataAccessException(ClassCastException e) {
+        log.error("ClassCastException occurred", e);
+        final ResponseDto<T> dto = ResponseDto.<T>builder()
+                .success(false)
+                .message("Lỗi data: " + e.getMessage())
+                .statusCode(StatusCodeEnum.EXCEPTION1001.toString()) // Thêm mã lỗi mới nếu cần
+                .build();
+        return ResponseEntity.ok(dto);
+    }
+
 }
