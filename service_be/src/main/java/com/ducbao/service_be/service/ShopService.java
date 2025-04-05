@@ -678,8 +678,17 @@ public class ShopService {
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListServiceById(String id, PanigationRequest request){
         Pageable pageable = PageRequest.of(request.getPage(), request.getLimit());
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Page<ServiceModel> serviceModels = serviceRepository.findAllByIdShopAndIsDelete(id, false ,pageable);
-        List<ServiceModel> serviceModelList = serviceModels.getContent();
+        Criteria criteria = new Criteria();
+        criteria.where("idShop").is(id);
+        if(request.getKeyword() != null && !request.getKeyword().isEmpty()){
+            criteria.and("name").regex(request.getKeyword(), "i");
+        }
+        Query query = new Query(criteria);
+        query.with(pageable);
+        query.with(sort);
+
+        List<ServiceModel> serviceModelList = mongoTemplate.find(query, ServiceModel.class);
+        long totalElement = mongoTemplate.count(query.skip(0).limit(0), ServiceModel.class);
         List<ServiceResponse> serviceResponses = serviceModelList.stream()
                 .map(
                         serviceModel -> mapper.map(serviceModel, ServiceResponse.class)
@@ -687,8 +696,8 @@ public class ShopService {
 
         MetaData metaData = MetaData.builder()
                 .currentPage(request.getPage())
-                .total(serviceModels.getTotalElements())
-                .totalPage(serviceModels.getTotalPages())
+                .total(totalElement)
+                .totalPage((int) Math.ceil((double) totalElement / request.getLimit()))
                 .pageSize(request.getLimit())
                 .build();
         return ResponseBuilder.okResponse(
