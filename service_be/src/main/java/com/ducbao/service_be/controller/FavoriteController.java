@@ -152,9 +152,10 @@ public class FavoriteController {
             ),
 
     })
-    @DeleteMapping("/{id}")
+    @DeleteMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(@PathVariable(value = "id") String id){
-        return favoriteService.deleteFavorite(id);
+    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(@RequestBody FavoriteRequest request){
+        log.info("Delete favorite request: {}", request);
+        return favoriteService.deleteFavorite(request);
     }
 }

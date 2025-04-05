@@ -51,4 +51,7 @@ public class ShopSearchResponse {
     private List<ServiceResponse> serviceResponses;
 
     private List<OpenTimeResponse> openTimeResponses;
+    private Integer countReview;
+    private Double point;
+    private Integer view;
 }

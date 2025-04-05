@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewUserResponse {
+    private String id;
     private String reviewTitle;
 
     private String reviewContent;

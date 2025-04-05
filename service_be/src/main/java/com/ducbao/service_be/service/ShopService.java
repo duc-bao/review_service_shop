@@ -675,6 +675,31 @@ public class ShopService {
         );
     }
 
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListServiceById(String id, PanigationRequest request){
+        Pageable pageable = PageRequest.of(request.getPage(), request.getLimit());
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Page<ServiceModel> serviceModels = serviceRepository.findAllByIdShopAndIsDelete(id, false ,pageable);
+        List<ServiceModel> serviceModelList = serviceModels.getContent();
+        List<ServiceResponse> serviceResponses = serviceModelList.stream()
+                .map(
+                        serviceModel -> mapper.map(serviceModel, ServiceResponse.class)
+                ).collect(Collectors.toList());
+
+        MetaData metaData = MetaData.builder()
+                .currentPage(request.getPage())
+                .total(serviceModels.getTotalElements())
+                .totalPage(serviceModels.getTotalPages())
+                .pageSize(request.getLimit())
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách dịch vụ theo cửa hàng thành công",
+                serviceResponses,
+                metaData,
+                StatusCodeEnum.SHOP1000
+        );
+
+    }
+
     public ResponseEntity<ResponseDto<ShopResponse>> blockShop(String idShop) {
         ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
         if (shopModel == null) {
@@ -815,13 +840,13 @@ public class ShopService {
             Sort.Direction direction = panigationRequest.getSort().startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC;
             sort = Sort.by(direction, sortField);
         }
-        Pageable pageable = PageRequest.of(panigationRequest.getPage() - 1, panigationRequest.getLimit(), sort);
+        Pageable pageable = PageRequest.of(panigationRequest.getPage(), panigationRequest.getLimit(), sort);
         Criteria criteria = Criteria.where("idShop").is(shopModel.getId());
 
         if (panigationRequest.getKeyword() != null && !panigationRequest.getKeyword().trim().isEmpty()) {
             criteria = criteria.and("name").regex(panigationRequest.getKeyword(), "i");
         }
-        criteria.and("isDelete").is(true);
+        criteria.and("isDelete").is(false);
         Query query = new Query(criteria).with(pageable);
         List<ServiceModel> services = mongoTemplate.find(query, ServiceModel.class);
         long totalElements = mongoTemplate.count(query.skip(0).limit(0), ServiceModel.class);

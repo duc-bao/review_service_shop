@@ -20,7 +20,7 @@ public class ReviewRequest {
     @Min(value = 1, message = "Điểm đánh giá thấp nhất là 1")
     @Max(value = 5, message = "Điểm đánh giá cao nhất là 5")
     private double rating;
-
+    
     private List<String> mediaUrlReview;
 
     private String idService;
