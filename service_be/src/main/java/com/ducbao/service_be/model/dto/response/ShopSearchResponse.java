@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -54,4 +56,7 @@ public class ShopSearchResponse {
     private Integer countReview;
     private Double point;
     private Integer view;
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
 }

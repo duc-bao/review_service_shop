@@ -100,4 +100,11 @@ public class ShopSearchBaseModel {
 
     @Field(type = FieldType.Nested)
     List<ServiceSearchBaseModel> serviceSearchBaseModels;
+
+    @Field(type = FieldType.Keyword)
+    private Integer codeCity;
+    @Field(type = FieldType.Keyword)
+    private Integer codeDistrict;
+    @Field(type = FieldType.Keyword)
+    private Integer codeWard;
 }

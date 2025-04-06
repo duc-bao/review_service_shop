@@ -874,6 +874,9 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                 .categorySearchBaseModel(convertCategory(shopModel.getIdCategory()))
                 .openTimeSearchBaseModels(convertOpenTimes(shopModel.getListIdOpenTime()))
                 .serviceSearchBaseModels(convertServices(shopModel.getId()))
+                .codeCity(shopModel.getCodeCity() == null ? 0  : shopModel.getCodeCity())
+                .codeDistrict(shopModel.getCodeDistrict()  == null ? 0  : shopModel.getCodeDistrict())
+                .codeWard(shopModel.getCodeWard() == null ? 0  : shopModel.getCodeWard())
                 .build();
     }
 

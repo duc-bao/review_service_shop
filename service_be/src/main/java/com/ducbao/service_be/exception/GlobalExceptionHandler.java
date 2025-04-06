@@ -5,6 +5,7 @@ import com.ducbao.common.model.enums.StatusCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.naming.AuthenticationException;
+import java.rmi.AccessException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,5 +82,14 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.ok(dto);
     }
-
+//    @ExceptionHandler(value = AccessDeniedException.class)
+//    public <T> ResponseEntity<ResponseDto<T>> handleAccesDenied(ClassCastException e) {
+//        log.error("AccessDenied occurred", e);
+//        final ResponseDto<T> dto = ResponseDto.<T>builder()
+//                .success(false)
+//                .message("Bạn không thể truy cập chức năng này " )
+//                .statusCode(StatusCodeEnum.EXCEPTION1001.toString()) // Thêm mã lỗi mới nếu cần
+//                .build();
+//        return ResponseEntity.ok(dto);
+//    }
 }
