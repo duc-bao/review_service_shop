@@ -323,7 +323,7 @@ public class AdvertisementService {
                 .filter(shopModel ->  !shopModel.getId().equals(idShop))
                 .collect(Collectors.toList());
         Collections.shuffle(shopModelList);
-        List<ShopModel> shopModelListNew = shopModelList.stream().limit(3).collect(Collectors.toList());
+        List<ShopModel> shopModelListNew = shopModelList.stream().limit(4).collect(Collectors.toList());
         List<ShopResponse> shopResponseList = shopModelListNew.stream()
                 .map(
                         shopModel -> mapper.map(shopModel, ShopResponse.class)

@@ -4,6 +4,7 @@ import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.service.FileService;
+import com.ducbao.service_be.service.OpenTimeService;
 import com.ducbao.service_be.service.ShopService;
 import com.ducbao.service_be.service.elk.ShopSearchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +33,7 @@ import java.util.List;
 public class ShopController {
     private final ShopService shopService;
     private final ShopSearchService shopSearchService;
+    private final OpenTimeService openTimeService;
 
 
     @Operation(
@@ -624,5 +626,91 @@ public class ShopController {
     public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListServiceByIdShop(@PathVariable(value = "id") String id, @RequestBody PanigationRequest request){
         log.info("Get list service by id shop - {}" , id);
         return shopService.getListServiceById(id, request);
+    }
+
+    @Operation(
+            summary = "Lấy chi tiết dịch vụ theo id",
+            description = "Api Lấy chi tiết dịch vụ theo id",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy chi tiết dịch vụ theo id", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy chi tiết dịch vụ theo id",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/detail-service/{id}")
+    public ResponseEntity<ResponseDto<ServiceResponse>> getDetailServiceByid(@PathVariable(value = "id") String id){
+        log.info("Get detail service by id- {}" , id);
+        return shopService.getDetailServiceById(id);
+    }
+
+    @Operation(
+            summary = "Lấy chi tiết thời gian theo id",
+            description = "Api Lấy chi tiết thời gian theo id",
+            tags = {"USERS:SHOPS"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SERVICE1000", description = "Lấy chi tiết thời gian theo id", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy chi tiết thời gian theo id",
+                          "data": {
+                             "id": "6718c25e43333b7137e625f9",
+                             "idShop": "6718c19c43333b7137e625f8",
+                             "name": "CSCCS",
+                             "type": null,
+                             "description": "nhà hàng àlsclslcslcs",
+                             "thumbnail": "âcsccscs",
+                             "mediaUrl": [
+                                "accccccaaa"
+                             ],
+                             "idCategory": null,
+                             "city": "HCM",
+                             "ward": "Quận 1",
+                             "district": "Phong vũ",
+                             "countReview": 10,
+                             "longitude": 10,
+                             "latitude": 10,
+                             "point": 10,
+                             "price": 5000000
+                          },
+                          "statusCode": "SERVICE1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @GetMapping("/detail-opentime/{id}")
+    public ResponseEntity<ResponseDto<OpenTimeResponse>> getDetailOpenTime(@PathVariable(value = "id") String id){
+        log.info("Get detail open time by id- {}" , id);
+        return openTimeService.getDetailById(id);
     }
 }

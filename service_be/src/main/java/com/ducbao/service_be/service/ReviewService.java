@@ -291,7 +291,7 @@ public class ReviewService {
                     StatusCodeEnum.SHOP1003
             );
         }
-        Criteria criteria = new Criteria();
+        Criteria criteria = Criteria.where("idShop").is(request.getIdShop());
         if(request.getKeyword() != null && !request.getKeyword().isEmpty()){
             criteria.and("reviewContent").regex(request.getKeyword(), "i");
         }

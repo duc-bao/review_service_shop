@@ -68,4 +68,8 @@ public class ShopBaseModel extends BaseModel {
     private boolean isDeleted;
 
     private Integer view;
+
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
 }

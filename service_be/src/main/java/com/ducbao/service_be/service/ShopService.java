@@ -709,6 +709,22 @@ public class ShopService {
 
     }
 
+    public ResponseEntity<ResponseDto<ServiceResponse>> getDetailServiceById(String id){
+        ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
+        if(serviceModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tồn tại dịch vụ",
+                StatusCodeEnum.SERVICE1003
+            );
+        }
+
+        return ResponseBuilder.okResponse(
+                "Lấy chi tiết dịch vụ thành công",
+                mapper.map(serviceModel, ServiceResponse.class),
+                StatusCodeEnum.SERVICE1000
+        );
+    }
+
     public ResponseEntity<ResponseDto<ShopResponse>> blockShop(String idShop) {
         ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
         if (shopModel == null) {
