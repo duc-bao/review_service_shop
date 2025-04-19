@@ -1,10 +1,7 @@
 package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
-import com.ducbao.service_be.model.dto.request.CategoryCountRequest;
-import com.ducbao.service_be.model.dto.request.CategoryDeleteTagRequest;
-import com.ducbao.service_be.model.dto.request.CategoryRequest;
-import com.ducbao.service_be.model.dto.request.CategoryTagsRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.CategoryResponse;
 import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.service.CategoryService;
@@ -211,15 +208,10 @@ public class CategoryCMSController {
                     """))}
             ),
     })
-    @GetMapping("")
+    @GetMapping("/parent")
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCategories(
-            @RequestParam(value = "sort", defaultValue = "id") String sort,
-            @RequestParam(value = "limit", defaultValue = "12") int limit,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "q", required = false) String q,
-            @RequestParam(value = "filter", required = false) String filter
     ) {
-        return categoryService.getAll(sort, q, filter, limit, page);
+        return categoryService.getAllParent();
     }
 
     @Operation(
@@ -246,7 +238,7 @@ public class CategoryCMSController {
             ),
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategoryById(@PathVariable String id){
+    public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategoryById(@PathVariable String id) {
         return categoryService.deleteCategory(id);
     }
 
@@ -275,7 +267,7 @@ public class CategoryCMSController {
             ),
     })
     @PutMapping("/add-tags")
-    public ResponseEntity<ResponseDto<CategoryResponse>> addTags(@RequestBody @Valid CategoryTagsRequest categoryTagsRequest){
+    public ResponseEntity<ResponseDto<CategoryResponse>> addTags(@RequestBody @Valid CategoryTagsRequest categoryTagsRequest) {
         log.info("addTags: {}", categoryTagsRequest);
         return categoryService.addTags(categoryTagsRequest);
     }
@@ -305,7 +297,7 @@ public class CategoryCMSController {
             ),
     })
     @PostMapping("/delete-tags")
-    public ResponseEntity<ResponseDto<CategoryResponse>> deleteTags(@RequestBody @Valid CategoryDeleteTagRequest categoryTagsRequest){
+    public ResponseEntity<ResponseDto<CategoryResponse>> deleteTags(@RequestBody @Valid CategoryDeleteTagRequest categoryTagsRequest) {
         log.info("deleteTags: {}", categoryTagsRequest);
         return categoryService.deleteTag(categoryTagsRequest);
     }
@@ -329,8 +321,107 @@ public class CategoryCMSController {
             ),
     })
     @GetMapping("/list-tags/{id}")
-    public ResponseEntity<ResponseDto<List<String>>> getAllTags(@PathVariable String id){
+    public ResponseEntity<ResponseDto<List<String>>> getAllTags(@PathVariable String id) {
         log.info("getAllTags: {}", id);
         return categoryService.getListTag(id);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách danh mục cha",
+            description = "Api Lấy danh sách danh mục cha ",
+            tags = {"USERS:CAT"},
+            parameters = {
+                    @Parameter(name = "q", description = "Ô nhập từ tìm kiếm", required = false,
+                            schema = @Schema(type = "string")),
+                    @Parameter(name = "filter", description = "Điều kiện lọc cho tìm kiếm \n" +
+                            "Ví dụ: {\"type\":\"RESTAURANT\"}",
+                            required = false,
+                            schema = @Schema(type = "string"
+                            ))
+            }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "CATEGORY1004", description = "Lấy danh sách danh mục với từ khóa thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thành công danh sách thể loại với nội dung tìm kiếm",
+                          "data": [
+                             {
+                                 "id": "6710dd81562f193049ca9929",
+                                 "name": "Nhà hàng",
+                                 "type": "RESTAURANT",
+                                 "parentId": null,
+                                 "description": "Nhà Hàng siêu ngon",
+                                 "delete": false
+                             }
+                          ],
+                          "statusCode": "CATEGORY1003",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+            @ApiResponse(
+                    responseCode = "CATEGORY1005", description = "Lấy danh sách danh mục với lọc thành công", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy danh sách danh mục với lọc thành công",
+                          "data": [
+                             {
+                                 "id": "6710dd81562f193049ca9929",
+                                 "name": "Nhà hàng",
+                                 "type": "RESTAURANT",
+                                 "parentId": null,
+                                 "description": "Nhà Hàng siêu ngon",
+                                 "delete": false
+                             }
+                          ],
+                          "statusCode": "CATEGORY1003",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+            @ApiResponse(
+                    responseCode = "CATEGORY1006", description = "Lấy thành công danh sách thể loại với nội dung tìm kiếm và lọc", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy thành công danh sách thể loại với nội dung tìm kiếm và lọc",
+                          "data": [
+                             {
+                                 "id": "6710dd81562f193049ca9929",
+                                 "name": "Nhà hàng",
+                                 "type": "RESTAURANT",
+                                 "parentId": null,
+                                 "description": "Nhà Hàng siêu ngon",
+                                 "delete": false
+                             }
+                          ],
+                          "statusCode": "CATEGORY1003",
+                          "meta": {
+                              "total": 1,
+                              "totalPage": 1,
+                              "currentPage": 1,
+                              "pageSize": 12
+                          }
+                      }
+                    """))}
+            ),
+    })
+    @PostMapping("/shops")
+    public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCategoryByShop(
+            @RequestBody @Valid PanigationRequest request
+    ) {
+        log.info("GetAllCategoryByShop request: {}", request.toString());
+        return categoryService.getAllCatShop(request);
     }
 }

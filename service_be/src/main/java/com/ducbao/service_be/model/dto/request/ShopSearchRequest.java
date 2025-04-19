@@ -23,7 +23,7 @@ public class ShopSearchRequest {
     private String district;
     private BigDecimal latitude;
     private BigDecimal longitude;
-    private String closeTime;
+    private String openTimeId;
     private String sortField;
     private SortOrderEnums sortOrderEnums;
     @NotNull(message = "Page number is required")

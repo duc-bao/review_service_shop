@@ -56,4 +56,11 @@ public class ShopResponse {
     private boolean isDelete;
 
     private Integer total_view;
+
+    private Integer point;
+    private Integer countReview;
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
+    private String imageBusiness;
 }

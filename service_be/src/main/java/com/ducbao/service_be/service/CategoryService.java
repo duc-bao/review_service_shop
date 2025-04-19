@@ -323,9 +323,7 @@ public class CategoryService {
     }
 
     public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllParent(){
-//        Pageable pageable = PageRequest.of(pagePanigationRequest.getPage(), pagePanigationRequest.getLimit());
-//        Page<CategoryModel> categoryModels = categoryRepository.findAllByParentIdIsEmpty();
-        List<CategoryModel> categoryModels1 = categoryRepository.findAllByParentIdIsNull();
+        List<CategoryModel> categoryModels1 = categoryRepository.findAllByParentIdIsNullAndIsDeleteIsFalse();
         List<CategoryResponse> categoryResponses = categoryModels1.stream()
                 .map(categoryModel -> mapper.map(categoryModel, CategoryResponse.class)).collect(Collectors.toList());
         return ResponseBuilder.okResponse(
@@ -334,7 +332,18 @@ public class CategoryService {
                 StatusCodeEnum.CATEGORY1000
         );
     }
-
+    public ResponseEntity<ResponseDto<List<CategoryResponse>>> getAllCatShop(PanigationRequest request){
+        Pageable pageable = PageRequest.of(request.getPage(), request.getLimit());
+        Page<CategoryModel> categoryModelPage = categoryRepository.findAllByParentIdIsNotNull(pageable);
+        List<CategoryModel> categoryModels = categoryModelPage.getContent();
+        List<CategoryResponse> categoryResponses = categoryModels.stream()
+                .map(categoryModel -> mapper.map(categoryModel, CategoryResponse.class)).collect(Collectors.toList());
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách thể loại cha thành công",
+                categoryResponses,
+                StatusCodeEnum.CATEGORY1000
+        );
+    }
     public ResponseEntity<ResponseDto<CategoryResponse>> deleteCategory(String id) {
         CategoryModel categoryModel = categoryRepository.findById(id).orElse(null);
         if (categoryModel == null) {

@@ -8,4 +8,5 @@ import java.time.LocalDateTime;
 public class ShopTotalRequest {
     LocalDateTime startDate;
     LocalDateTime endDate;
+
 }

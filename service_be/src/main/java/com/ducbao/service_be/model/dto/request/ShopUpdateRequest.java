@@ -29,4 +29,6 @@ public class ShopUpdateRequest {
     private StateServiceEnums stateService;
 
     private Integer total_view;
+
+    private String imageBusiness;
 }

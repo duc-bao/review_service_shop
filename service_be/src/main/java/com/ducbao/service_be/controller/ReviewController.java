@@ -338,7 +338,7 @@ public class ReviewController {
                     """)))
     })
     @GetMapping("/getall/recently")
-    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getAllReviewRecently(@RequestParam(value = "limit", defaultValue = "12") int limit,
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getAllReviewRecently(@RequestParam(value = "limit", defaultValue = "8") int limit,
                                                                                       @RequestParam(value = "page", defaultValue = "1") int page,
                                                                                       @RequestParam(value = "sort", defaultValue = "updateAt") String sort) {
         return reviewService.getListReviewRecently(limit, page, sort);

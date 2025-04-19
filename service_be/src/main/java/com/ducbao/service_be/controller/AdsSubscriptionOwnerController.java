@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.PanigationAdvertisementRequest;
+import com.ducbao.service_be.model.dto.request.PanigationRequest;
 import com.ducbao.service_be.model.dto.response.AdsSubcriptionResponse;
 import com.ducbao.service_be.model.dto.response.AdvertisementResponse;
 import com.ducbao.service_be.service.AdvertisementService;
@@ -80,8 +81,8 @@ public class AdsSubscriptionOwnerController {
             ),
     })
     @PostMapping("/list-adssub")
-    public ResponseEntity<ResponseDto<List<AdsSubcriptionResponse>>> getListAds(){
+    public ResponseEntity<ResponseDto<List<AdsSubcriptionResponse>>> getListAds(@RequestBody @Valid PanigationRequest request){
         log.info("getListAds - {}");
-        return advertisementService.getListAdsSubscription();
+        return advertisementService.getListAdsSubscription(request);
     }
 }

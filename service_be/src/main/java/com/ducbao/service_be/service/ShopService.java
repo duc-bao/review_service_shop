@@ -16,6 +16,7 @@ import com.ducbao.service_be.model.dto.response.*;
 import com.ducbao.service_be.model.entity.*;
 import com.ducbao.service_be.model.mapper.CommonMapper;
 import com.ducbao.service_be.repository.*;
+import com.ducbao.service_be.service.elk.ShopSearchServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,7 @@ public class ShopService {
     private final MongoTemplate mongoTemplate;
     private final ADSSubscriptionRepository adsSubscriptionRepository;
     private final AdvertisementRepository advertisementRepository;
+    private final ShopSearchServiceImpl shopSearchService;
 
     public ResponseEntity<ResponseDto<ShopResponse>> createShop(ShopRequest shopRequest) {
 //        String idUser = userService.userId();
@@ -179,15 +181,26 @@ public class ShopService {
             }
             updateOpenTime.add(openTimeModel);
         }
-        updateOpenTime = openTimeRepository.saveAll(updateOpenTime);
-        shopModel.setListIdOpenTime(idOpenTime);
-        shopRepository.save(shopModel);
+        try {
+            updateOpenTime = openTimeRepository.saveAll(updateOpenTime);
+            shopModel.setListIdOpenTime(idOpenTime);
+            shopRepository.save(shopModel);
+            new Thread(() -> {
+                shopSearchService.save(shopModel.getId().toString());
+            }).start();
+            return ResponseBuilder.okResponse(
+                    "Cập nhật thời gian hoạt động của cửa hàng thành công",
+                    updateOpenTime.stream().map(updateOpenTimes -> mapper.map(updateOpenTimes, OpenTimeResponse.class)).collect(Collectors.toList()),
+                    StatusCodeEnum.SHOP1005
+            );
+        } catch (Exception e) {
+            log.error("Error update open time -{}", e.getMessage());
+            return ResponseBuilder.badRequestResponse(
+                    "Cập nhật thời gian hoạt động cửa hàng không thành công",
+                    StatusCodeEnum.SHOP1005
+            );
+        }
 
-        return ResponseBuilder.okResponse(
-                "Cập nhật thời gian hoạt động của cửa hàng thành công",
-                updateOpenTime.stream().map(updateOpenTimes -> mapper.map(updateOpenTimes, OpenTimeResponse.class)).collect(Collectors.toList()),
-                StatusCodeEnum.SHOP1005
-        );
     }
 
     public ResponseEntity<ResponseDto<List<OpenTimeResponse>>> getListOpenTime(String idShop) {
@@ -289,7 +302,9 @@ public class ShopService {
                     .subject(AppConstants.SUBJECT_REGISTER)
                     .build();
             emailService.sendEmail(emailRequest);
-
+            new Thread(() -> {
+                shopSearchService.save(id);
+            }).start();
             return ResponseBuilder.okResponse(
                     "Kích hoạt cửa hàng thành công",
                     mapper.map(shopModel, ShopResponse.class),
@@ -345,6 +360,8 @@ public class ShopService {
 
         shopGetResponse.setListOpenTimes(openTimeResponses);
 
+        CategoryModel categoryModel = categoryRepository.findById(shopModel.getIdCategory()).orElse(null);
+        shopGetResponse.setCategoryName(categoryModel.getName());
         return ResponseBuilder.okResponse(
                 "Lấy thông tin cửa hàng theo id thành công",
                 shopGetResponse,
@@ -376,19 +393,24 @@ public class ShopService {
         }
         shopModelNew.setView((shopModelNew.getView() == null ? 0 : shopModelNew.getView()) + 1);
         if ("ads".equalsIgnoreCase(request.getType())) {
-            ADSSubscriptionModel subscriptionModel = adsSubscriptionRepository.findByIdShop(shopModel.getId()).orElse(null);
+            ADSSubscriptionModel subscriptionModel = adsSubscriptionRepository.findByIdShop(shopModelNew.getId()).orElse(null);
             if (subscriptionModel != null) {
                 subscriptionModel.setTotalView((subscriptionModel.getTotalView() != null ? subscriptionModel.getTotalView() : 0) + 1);
                 adsSubscriptionRepository.save(subscriptionModel);
             }
         }
         try {
-            shopRepository.save(shopModelNew);
+            shopModelNew =  shopRepository.save(shopModelNew);
+            ShopModel finalShopModelNew = shopModelNew;
+//            new Thread(() -> {
+//                log.info("recordView");
+//                shopSearchService.save(finalShopModelNew.getId().toString());
+//            }).start();
             return ResponseBuilder.okResponse(
                     "Tăng số lượng view thành công",
                     StatusCodeEnum.SHOP1000
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseBuilder.badRequestResponse(
                     "Lỗi xảy ra khi đếm số lượng truy cập",
                     StatusCodeEnum.SHOP1005
@@ -505,6 +527,9 @@ public class ShopService {
 
         try {
             serviceModel = serviceRepository.save(serviceModel);
+            new Thread(() -> {
+                shopSearchService.save(shopModel.getId().toString());
+            }).start();
             return ResponseBuilder.okResponse(
                     "Tạo dịch vụ thành công",
                     mapper.map(serviceModel, ServiceResponse.class),
@@ -531,7 +556,11 @@ public class ShopService {
         ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
         mapper.maptoObject(serviceRequest, serviceModel);
         try {
+
             serviceModel = serviceRepository.save(serviceModel);
+            new Thread(() -> {
+                shopSearchService.save(shopModel.getId().toString());
+            }).start();
             return ResponseBuilder.okResponse(
                     "Cập nhật dịch vụ thành công",
                     mapper.map(serviceModel, ServiceResponse.class),
@@ -556,6 +585,7 @@ public class ShopService {
 
         serviceModel.setDelete(true);
         try {
+            final String idShop = serviceModel.getIdShop();
             serviceModel = serviceRepository.save(serviceModel);
             return ResponseBuilder.okResponse(
                     "Xóa thành công dịch vụ",
@@ -675,12 +705,11 @@ public class ShopService {
         );
     }
 
-    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListServiceById(String id, PanigationRequest request){
+    public ResponseEntity<ResponseDto<List<ServiceResponse>>> getListServiceById(String id, PanigationRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getLimit());
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Criteria criteria = new Criteria();
-        criteria.where("idShop").is(id);
-        if(request.getKeyword() != null && !request.getKeyword().isEmpty()){
+        Criteria criteria = Criteria.where("idShop").is(id);
+        if (request.getKeyword() != null && !request.getKeyword().isEmpty()) {
             criteria.and("name").regex(request.getKeyword(), "i");
         }
         Query query = new Query(criteria);
@@ -709,12 +738,12 @@ public class ShopService {
 
     }
 
-    public ResponseEntity<ResponseDto<ServiceResponse>> getDetailServiceById(String id){
+    public ResponseEntity<ResponseDto<ServiceResponse>> getDetailServiceById(String id) {
         ServiceModel serviceModel = serviceRepository.findById(id).orElse(null);
-        if(serviceModel == null){
+        if (serviceModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tồn tại dịch vụ",
-                StatusCodeEnum.SERVICE1003
+                    StatusCodeEnum.SERVICE1003
             );
         }
 
@@ -737,6 +766,9 @@ public class ShopService {
         shopModel.setVery(false);
         shopModel.setStatusShopEnums(StatusShopEnums.DEACTIVE);
         try {
+            new Thread(() -> {
+                shopSearchService.save(idShop);
+            }).start();
             shopModel = shopRepository.save(shopModel);
             return ResponseBuilder.okResponse(
                     "Khóa cửa hàng thành công",
@@ -801,6 +833,10 @@ public class ShopService {
     }
 
     public ResponseEntity<ResponseDto<CountResponse>> getTotalShop(ShopTotalRequest request) {
+        LocalDateTime start = Optional.ofNullable(request.getStartDate())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime end = Optional.ofNullable(request.getEndDate())
+                .orElse(LocalDateTime.now());
         int total = shopRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
         return ResponseBuilder.okResponse(
                 "Tổng số cửa hàng theo thời gian",

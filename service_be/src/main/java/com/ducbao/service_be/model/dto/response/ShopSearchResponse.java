@@ -59,4 +59,5 @@ public class ShopSearchResponse {
     private Integer codeCity;
     private Integer codeDistrict;
     private Integer codeWard;
+    private String imageBusiness;
 }

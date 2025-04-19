@@ -107,4 +107,8 @@ public class ShopSearchBaseModel {
     private Integer codeDistrict;
     @Field(type = FieldType.Keyword)
     private Integer codeWard;
+    @Field(type = FieldType.Integer)
+    private Integer view;
+    @Field(type = FieldType.Text)
+    private String imageBusiness;
 }

@@ -23,6 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@RequestMapping("/cms/ads")
 @RolesAllowed(value = "ADMIN")
 public class AdvertisementCMSController {
     private final AdvertisementService advertisementService;
@@ -195,7 +196,7 @@ public class AdvertisementCMSController {
                     """))}
             ),
     })
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ResponseDto<AdvertisementResponse>> updateAdvertisement(@RequestBody @Valid AdvertisementRequest request,@PathVariable("id") String id) {
         log.info("Update Advertisement {}", request);
         return advertisementService.updateAdvertisement(request, id);

@@ -3,6 +3,7 @@ package com.ducbao.service_be.service;
 import com.ducbao.common.model.builder.ResponseBuilder;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
+import com.ducbao.common.model.enums.StatusShopEnums;
 import com.ducbao.common.model.enums.StatusUserEnums;
 import com.ducbao.common.util.Util;
 import com.ducbao.service_be.model.dto.request.GoogleRequest;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -95,42 +97,70 @@ public class GoogleService {
             }
 
             UserModel userModel = userRepository.findByEmail(email).orElse(null);
-            if(userModel != null) {
-                UserInfoResponse userInfoResponse = modelMapper.map(userModel, UserInfoResponse.class);
-                String accessToken = jwtService.generateTokenByIdUser(userModel.getId());
-                LoginResponse loginResponse = LoginResponse.builder()
-                        .accessToken(accessToken)
-                        .userInfoResponse(userInfoResponse)
-                        .build();
-                return ResponseBuilder.okResponse(
-                        "Đăng nhập với google thành công với tài khoản đã tồn tại",
-                        loginResponse,
-                        StatusCodeEnum.USER1000
-                );
-            }else {
-                UserModel  userModelNew = UserModel.builder()
+
+            if (userModel != null) {
+                ShopModel shopModel = shopRepository.findByIdUser(userModel.getId());
+                if (shopModel != null && shopModel.getStatusShopEnums() == StatusShopEnums.ACTIVE) {
+                    userModel.setRole(List.of("OWNER"));
+                    userModel = userRepository.save(userModel);
+                    UserInfoResponse userInfoResponse = modelMapper.map(userModel, UserInfoResponse.class);
+                    String accessToken = jwtService.generateTokenByIdUser(userModel.getId());
+                    LoginResponse loginResponse = LoginResponse.builder()
+                            .accessToken(accessToken)
+                            .userInfoResponse(userInfoResponse)
+                            .build();
+                    log.info("Login google response - {}",loginResponse.toString());
+                    return ResponseBuilder.okResponse(
+                            "Đăng nhập với google thành công với cửa hàng đã tồn tại",
+                            loginResponse,
+                            StatusCodeEnum.USER1000
+                    );
+                } else if (shopModel != null && shopModel.getStatusShopEnums()== StatusShopEnums.DEACTIVE) {
+                    return ResponseBuilder.badRequestResponse(
+                            "Đăng nhập với tài khoản google không thành công do của hàng chưa được kích hoạt",
+                            StatusCodeEnum.USER1004
+                    );
+                } else {
+                    UserInfoResponse userInfoResponse = modelMapper.map(userModel, UserInfoResponse.class);
+                    String accessToken = jwtService.generateTokenByIdUser(userModel.getId());
+                    LoginResponse loginResponse = LoginResponse.builder()
+                            .accessToken(accessToken)
+                            .userInfoResponse(userInfoResponse)
+                            .build();
+                    log.info("Login google response - {}",loginResponse.toString());
+                    return ResponseBuilder.okResponse(
+                            "Đăng nhập với google thành công với tài khoản đã tồn tại",
+                            loginResponse,
+                            StatusCodeEnum.USER1000
+                    );
+                }
+            } else {
+                UserModel userModelNew = UserModel.builder()
                         .email(email)
                         .avatar(avatar)
                         .firstName(firstName)
                         .lastName(lastName)
+                        .username(email)
                         .idSocial(idSocial)
                         .statusUserEnums(StatusUserEnums.ACTIVE)
+                        .role(List.of("USER"))
                         .build();
                 try {
-                   userModelNew =  userRepository.save(userModelNew);
-                   UserInfoResponse userInfoResponse = modelMapper.map(userModelNew, UserInfoResponse.class);
-                   String accessToken = jwtService.generateTokenByIdUser(userModelNew.getId());
-                   LoginResponse loginResponse = LoginResponse.builder()
-                           .accessToken(accessToken)
-                           .userInfoResponse(userInfoResponse)
-                           .build();
-                   return ResponseBuilder.okResponse(
-                           "Đăng nhập với google thành công",
-                           loginResponse,
-                           StatusCodeEnum.USER1000
-                   );
+                    userModelNew = userRepository.save(userModelNew);
+                    UserInfoResponse userInfoResponse = modelMapper.map(userModelNew, UserInfoResponse.class);
+                    String accessToken = jwtService.generateTokenByIdUser(userModelNew.getId());
+                    LoginResponse loginResponse = LoginResponse.builder()
+                            .accessToken(accessToken)
+                            .userInfoResponse(userInfoResponse)
+                            .build();
+                    log.info("Login google response - {}",loginResponse.toString());
+                    return ResponseBuilder.okResponse(
+                            "Đăng nhập với google thành công",
+                            loginResponse,
+                            StatusCodeEnum.USER1000
+                    );
 
-                }catch (Exception e) {
+                } catch (Exception e) {
                     log.error("Error Login Goolge save user: " + e.getMessage());
                     return ResponseBuilder.badRequestResponse(
                             "Lỗi khi lưu user trong login với google",

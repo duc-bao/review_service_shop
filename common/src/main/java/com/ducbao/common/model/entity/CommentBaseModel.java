@@ -22,4 +22,6 @@ public class CommentBaseModel extends BaseModel{
     private String idShop;
 
     private boolean isComment;
+
+    private boolean isEdit;
 }

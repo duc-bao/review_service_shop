@@ -32,6 +32,12 @@ public class UserDetailsImpl implements UserDetailsService {
         UserModel userModel = userRepository.findById(id).get();
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         grantedAuthorities.addAll(userModel.getAuthorities());
+        if(userModel.getPassword()== null){
+            UserDetailsCustoms userDetailsCustoms = new UserDetailsCustoms(
+                    userModel.getUsername(), grantedAuthorities
+            );
+            return userDetailsCustoms;
+        }
         User user = new User(userModel.getUsername(), userModel.getPassword(), grantedAuthorities);
         return user;
     }

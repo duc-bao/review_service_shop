@@ -22,6 +22,8 @@ public class AdvertisementRequest {
     private AdvertisementTypeEnum advertisementTypeEnum;
     @NotBlank(message = "Ảnh đại diện của gói quảng cáo không được để trống")
     private String thumbnail;
-    @NotNull(message = "Không được để trống thời lượng của gói này")
     private LocalDateTime duration;
+
+    @NotNull(message = "Không được để trống thời lượng của gói này")
+    private Integer durationDay;
 }

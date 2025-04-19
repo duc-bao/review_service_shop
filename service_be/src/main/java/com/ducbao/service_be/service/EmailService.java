@@ -71,7 +71,7 @@ public class EmailService {
         try {
           restTemplate.postForEntity(apiUrl, request, EmailResponse.class);
         }catch (Exception e) {
-            log.error(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 }

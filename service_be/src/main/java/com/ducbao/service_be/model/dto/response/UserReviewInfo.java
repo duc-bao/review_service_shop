@@ -38,4 +38,6 @@ public class UserReviewInfo {
     private int helpful;
 
     private int notLike;
+
+    private String username;
 }

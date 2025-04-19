@@ -72,6 +72,7 @@ public class ShopController {
     })
     @PostMapping("/search")
     public ResponseEntity<ResponseDto<List<ShopSearchResponse>>> searchShops(@Valid @RequestBody ShopSearchRequest shopSearchRequest) {
+        log.info("SearchShops start - {}", shopSearchRequest.toString());
         return shopSearchService.searchShopService(shopSearchRequest);
     }
 
