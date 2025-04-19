@@ -51,4 +51,6 @@ public class ShopGetResponse {
     private String idCategory;
     private Integer point;
     private Integer countReview;
+    private String categoryName;
+    private String imageBusiness;
 }

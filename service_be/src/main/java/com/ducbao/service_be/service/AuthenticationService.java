@@ -59,7 +59,6 @@ public class AuthenticationService {
                         .accessToken(token)
                         .userInfoResponse(userInfoResponse)
                         .build();
-
                 if ("ACTIVE".equals(userModel.getStatusUserEnums().toString())) {
                     return ResponseBuilder.okResponse(
                             "Đăng nhập thành công",
@@ -115,6 +114,7 @@ public class AuthenticationService {
         String endecodePassword = passwordEncoder.encode(userModel.getPassword());
         userModel.setPassword(endecodePassword);
         userModel.setRole(List.of("USER"));
+        userModel.setAvatar("http://res.cloudinary.com/dbk09oy6h/image/upload/v1745074840/IMAGE_USER/68036fd9e50e7d57aa4b353e/1745074841434.png.png");
         EmailRequest emailRequest = EmailRequest.builder()
                 .channel("email")
                 .recipient(userModel.getEmail())
@@ -269,6 +269,7 @@ public class AuthenticationService {
             }
 
             tokenBucket.delete();
+            log.info("Logout success - {}", request.getToken().toString());
             return ResponseBuilder.okResponse(
                     "Đăng xuất tài khoản thành công",
                     StatusCodeEnum.USER1000

@@ -90,9 +90,9 @@ public class ReviewService {
             userModel.setQuantityImage(userModel.getQuantityImage() + quantityImage);
 
             try {
-                reviewModel = reviewRepository.save(reviewModel);
                 shopRepository.save(shopModel);
                 userRepository.save(userModel);
+                reviewModel = reviewRepository.save(reviewModel);
                 return ResponseBuilder.okResponse(
                         "Tạo đánh giá của cửa hàng thành công",
                         mapper.map(reviewModel, ReviewResponse.class),

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,9 +21,9 @@ public class AdvertisementResponse {
     private Integer price;
     private Integer total_access;
     private String thumbnail;
-    private AdvertisementTypeEnum advertisementType;
+    private AdvertisementTypeEnum advertisementTypeEnum;
     private StatusAdvertisement statusAdvertisement;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private LocalDateTime duration;
+    private Integer durationDay;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

@@ -51,6 +51,10 @@ public class JwtService {
         UserModel user = userRepository.findById(userModel.getId()).orElse(null);
         claims.put("avatar", user.getAvatar());
         claims.put("enabled", user.isEnabled());
+        String fullName = (user.getFirstName() != null || user.getLastName() != null)
+                ? user.getFirstName() + " " + user.getLastName()
+                : user.getUsername();
+        claims.put("lastname",fullName);
         List<String> role = user.getRole();
         claims.put("role", role);
 
@@ -61,7 +65,7 @@ public class JwtService {
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, getSignKey())
                 .compact();
-
+        log.info("GenerateToken - {}",userModel.getId());
         RBucket<String> token = redisson.getBucket(tokenGenerate);
         log.info("Retrieved userId from Redis: {}", userModel.getId());
         token.set(userModel.getId(), expireToken, TimeUnit.MILLISECONDS);
@@ -78,6 +82,10 @@ public class JwtService {
         UserModel user = userRepository.findById(idUser).orElse(null);
         claims.put("avatar", user.getAvatar());
         claims.put("enabled", user.isEnabled());
+        String fullName = (user.getFirstName() != null || user.getLastName() != null)
+                ? user.getFirstName() + " " + user.getLastName()
+                : user.getUsername();
+        claims.put("lastname",fullName);
         List<String> role = user.getRole();
         claims.put("role", role);
 
@@ -85,6 +93,7 @@ public class JwtService {
                 .subject(idUser)
                 .issuedAt(now)
                 .expiration(expDate)
+                .claims(claims)
                 .signWith(SignatureAlgorithm.HS512, getSignKey())
                 .compact();
 

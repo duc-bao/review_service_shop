@@ -2,6 +2,7 @@ package com.ducbao.service_be.model.dto.response;
 
 import com.ducbao.common.model.entity.OpenTimeBaseModel;
 import com.ducbao.common.model.enums.CategoryEnums;
+import com.ducbao.common.model.enums.StateServiceEnums;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,12 +32,6 @@ public class ServiceResponse {
 
     private String idCategory;
 
-    private String city;
-
-    private String ward;
-
-    private String district;
-
     private int countReview;
 
     private BigDecimal longitude;
@@ -46,4 +41,7 @@ public class ServiceResponse {
     private  double point;
 
     private double price;
+
+    private StateServiceEnums stateService;
+
 }

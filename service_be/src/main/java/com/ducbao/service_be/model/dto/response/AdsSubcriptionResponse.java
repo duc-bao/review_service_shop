@@ -29,4 +29,6 @@ public class AdsSubcriptionResponse {
     private String statusAds;
     private LocalDateTime createdAt;
     private Long remainingDay;
+    private Integer totalView;
+    private String thumbnail;
 }

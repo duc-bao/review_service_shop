@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class ADSShopRequest {
     private String idAdvertisement;
     private Double amount;
-
 }

@@ -77,6 +77,7 @@ public class CommentService {
         commentModel.setIdReview(idReview);
         commentModel.setIdShop(shopModel.getId());
         commentModel.setComment(true);
+        commentModel.setEdit(false);
         try {
             commentModel = commentRepository.save(commentModel);
             return ResponseBuilder.okResponse(
@@ -110,6 +111,7 @@ public class CommentService {
 
 
         mapper.maptoObject(commentRequest, commentModel);
+        commentModel.setEdit(true);
         try {
             commentModel = commentRepository.save(commentModel);
             return ResponseBuilder.okResponse(

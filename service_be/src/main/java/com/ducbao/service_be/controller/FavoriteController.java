@@ -52,7 +52,6 @@ public class FavoriteController {
             ),
 
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("")
     public ResponseEntity<ResponseDto<List<FavoriteResponse>>> getListFavorite(
             @RequestParam(name = "sort", defaultValue = "createdAt") String s,
@@ -83,7 +82,6 @@ public class FavoriteController {
             ),
 
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<FavoriteResponse>> getFavoriteById(@PathVariable(value = "id") String id){
         return favoriteService.getFavoriteById(id);

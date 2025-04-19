@@ -72,4 +72,6 @@ public class ShopBaseModel extends BaseModel {
     private Integer codeCity;
     private Integer codeDistrict;
     private Integer codeWard;
+    private String imageBusiness;
+
 }

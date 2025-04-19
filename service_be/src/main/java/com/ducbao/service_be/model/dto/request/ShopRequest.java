@@ -23,7 +23,6 @@ public class ShopRequest {
     private String imageBusiness;
 
     @NotBlank(message = "Email là trường bắt buộc")
-    @IsEmail
     private String email;
 
     private List<String> mediaUrls;
@@ -53,4 +52,8 @@ public class ShopRequest {
     private String phone;
 
     private boolean isOwner;
+
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -48,4 +49,10 @@ public class UserResponse {
     private int like;
 
     private StatusUserEnums statusUserEnums;
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
+
+    private Instant createdAt;
+    private Instant updatedAt;
 }

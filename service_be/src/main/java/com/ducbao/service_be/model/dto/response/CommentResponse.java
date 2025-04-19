@@ -21,4 +21,6 @@ public class CommentResponse {
     private String idShop;
 
     private boolean isComment;
+
+    private boolean isEdit;
 }

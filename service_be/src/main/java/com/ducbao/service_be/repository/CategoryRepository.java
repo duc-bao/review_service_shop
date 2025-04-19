@@ -19,5 +19,6 @@ public interface CategoryRepository extends MongoRepository<CategoryModel, Strin
     boolean existsByName(String name);
 
     int countByCreatedAtBetweenAndIsDeleteIsFalse(LocalDateTime from, LocalDateTime to);
-    List<CategoryModel> findAllByParentIdIsNull();
+    List<CategoryModel> findAllByParentIdIsNullAndIsDeleteIsFalse();
+    Page<CategoryModel> findAllByParentIdIsNotNull(Pageable pageable);
 }
