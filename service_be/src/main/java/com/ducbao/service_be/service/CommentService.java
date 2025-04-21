@@ -77,6 +77,7 @@ public class CommentService {
         commentModel.setIdReview(idReview);
         commentModel.setIdShop(shopModel.getId());
         commentModel.setComment(true);
+        commentModel.setEdit(false);
         try {
             commentModel = commentRepository.save(commentModel);
             return ResponseBuilder.okResponse(
@@ -110,6 +111,7 @@ public class CommentService {
 
 
         mapper.maptoObject(commentRequest, commentModel);
+        commentModel.setEdit(true);
         try {
             commentModel = commentRepository.save(commentModel);
             return ResponseBuilder.okResponse(
@@ -126,22 +128,21 @@ public class CommentService {
 
     }
 
-    public ResponseEntity<ResponseDto<CommentResponse>> getByIdReview(String idReview) {
-        CommentModel commentModel = commentRepository.findByIdReview(idReview);
+    public ResponseEntity<ResponseDto<CommentResponse>> getCommentByIdReview(String idReview) {
+        ReviewModel reviewModel = reviewRepository.findById(idReview).orElse(null);
+        if(reviewModel == null){
+            return ResponseBuilder.badRequestResponse(
+                    "Không tồn tại đánh gía",
+                    StatusCodeEnum.REVIEW1004
+            );
+        }
+        CommentModel commentModel = commentRepository.findByIdReview(reviewModel.getId());
         if(commentModel == null){
             return ResponseBuilder.badRequestResponse(
-                    "Không tồn tại bình luận",
-                    StatusCodeEnum.COMMENT1002
+                    "Không tồn tại commnet",
+                    StatusCodeEnum.REVIEW1004
             );
         }
-        boolean isVery = isVeryfyShop(commentModel.getIdReview()).getBody().isSuccess();
-        if(!isVery){
-            return ResponseBuilder.badRequestResponse(
-                    "Không được lấy bình luận",
-                    StatusCodeEnum.COMMENT1001
-            );
-        }
-
 
         return ResponseBuilder.okResponse(
                 "Lấy comment thành công theo id review",

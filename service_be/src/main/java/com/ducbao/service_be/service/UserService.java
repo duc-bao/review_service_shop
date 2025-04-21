@@ -32,8 +32,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -179,6 +181,10 @@ public class UserService {
     }
 
     public ResponseEntity<ResponseDto<CountResponse>> getTotalUser(ShopTotalRequest totalRequest) {
+        LocalDateTime start = Optional.ofNullable(totalRequest.getStartDate())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime end = Optional.ofNullable(totalRequest.getEndDate())
+                .orElse(LocalDateTime.now());
         int total = userRepository.countByCreatedAtBetween(totalRequest.getStartDate(), totalRequest.getEndDate());
         return ResponseBuilder.okResponse(
                 "Lấy tổng số tài khoản trong thời gian thành công",

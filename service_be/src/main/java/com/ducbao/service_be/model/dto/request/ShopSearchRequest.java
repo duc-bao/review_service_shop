@@ -23,7 +23,7 @@ public class ShopSearchRequest {
     private String district;
     private BigDecimal latitude;
     private BigDecimal longitude;
-    private String closeTime;
+    private String openTimeId;
     private String sortField;
     private SortOrderEnums sortOrderEnums;
     @NotNull(message = "Page number is required")
@@ -31,6 +31,6 @@ public class ShopSearchRequest {
     private Integer page;
 
     @NotNull(message = "Page size is required")
-    @Min(value = 12, message = "Page size must be at least 1")
+    @Min(value = 1, message = "Page size must be at least 1")
     private Integer size;
 }

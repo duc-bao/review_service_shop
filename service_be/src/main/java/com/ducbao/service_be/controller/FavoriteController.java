@@ -52,7 +52,6 @@ public class FavoriteController {
             ),
 
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("")
     public ResponseEntity<ResponseDto<List<FavoriteResponse>>> getListFavorite(
             @RequestParam(name = "sort", defaultValue = "createdAt") String s,
@@ -83,7 +82,6 @@ public class FavoriteController {
             ),
 
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<FavoriteResponse>> getFavoriteById(@PathVariable(value = "id") String id){
         return favoriteService.getFavoriteById(id);
@@ -152,9 +150,10 @@ public class FavoriteController {
             ),
 
     })
-    @DeleteMapping("/{id}")
+    @DeleteMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(@PathVariable(value = "id") String id){
-        return favoriteService.deleteFavorite(id);
+    public ResponseEntity<ResponseDto<FavoriteResponse>> deleteFavorite(@RequestBody FavoriteRequest request){
+        log.info("Delete favorite request: {}", request);
+        return favoriteService.deleteFavorite(request);
     }
 }

@@ -5,10 +5,7 @@ import com.ducbao.common.model.dto.MetaData;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.common.model.enums.StatusCodeEnum;
 import com.ducbao.common.util.Util;
-import com.ducbao.service_be.model.dto.request.ReviewReactionRequest;
-import com.ducbao.service_be.model.dto.request.ReviewRequest;
-import com.ducbao.service_be.model.dto.request.ReviewUpdateRequest;
-import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
+import com.ducbao.service_be.model.dto.request.*;
 import com.ducbao.service_be.model.dto.response.CountResponse;
 import com.ducbao.service_be.model.dto.response.ReviewResponse;
 import com.ducbao.service_be.model.dto.response.ReviewUserResponse;
@@ -29,6 +26,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +49,7 @@ public class ReviewService {
     private final CommonMapper mapper;
     private final RedissonClient redisson;
     private final UserService userService;
+    private final MongoTemplate mongoTemplate;
 
     public ResponseEntity<ResponseDto<ReviewResponse>> createReview(ReviewRequest reviewRequest) {
         String idUser = userService.userId();
@@ -89,9 +90,9 @@ public class ReviewService {
             userModel.setQuantityImage(userModel.getQuantityImage() + quantityImage);
 
             try {
-                reviewModel = reviewRepository.save(reviewModel);
                 shopRepository.save(shopModel);
                 userRepository.save(userModel);
+                reviewModel = reviewRepository.save(reviewModel);
                 return ResponseBuilder.okResponse(
                         "Tạo đánh giá của cửa hàng thành công",
                         mapper.map(reviewModel, ReviewResponse.class),
@@ -282,33 +283,58 @@ public class ReviewService {
         }
     }
 
-    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdShop(String idShop, int limit, int page, String sort) {
-
-        ShopModel shopModel = shopRepository.findById(idShop).orElse(null);
+    public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdShop(ReviewGetAllRequest request) {
+        ShopModel shopModel = shopRepository.findById(request.getIdShop()).orElse(null);
         if (shopModel == null) {
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng",
                     StatusCodeEnum.SHOP1003
             );
         }
+        Criteria criteria = Criteria.where("idShop").is(request.getIdShop());
+        if(request.getKeyword() != null && !request.getKeyword().isEmpty()){
+            criteria.and("reviewContent").regex(request.getKeyword(), "i");
+        }
+        if(request.getFilter() != null && request.getFilter() > 0){
+            criteria.andOperator(
+                    Criteria.where("rating").gte(request.getFilter()),
+                    Criteria.where("rating").lt(request.getFilter() + 1)
+            );
+        }
+        Query query = new Query(criteria);
+        if ("rating".equalsIgnoreCase(request.getSort())) {
+            query.with(Sort.by(Sort.Direction.DESC, "rating"));
+        } else {
+            query.with(Sort.by(Sort.Direction.DESC, "createdAt")); // mặc định sort theo thời gian
+        }
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        query.with(pageable);
+        List<ReviewModel> reviewModelList = mongoTemplate.find(query, ReviewModel.class);
+        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream()
+                .map(
+                        reviewModel -> {
+                            ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
 
-        Sort sort1 = Sort.by(Sort.Direction.DESC, sort);
-        Pageable pageable = PageRequest.of(page - 1, limit, sort1);
-        Page<ReviewModel> reviewModelPage = reviewRepository.findByIdShop(idShop, pageable);
-        List<ReviewModel> reviewModelList = reviewModelPage.getContent();
-        List<ReviewUserResponse> reviewUserResponseList = reviewModelList.stream().map(
-                reviewModel -> {
-                    ReviewUserResponse reviewUserResponse = mapper.map(reviewModel, ReviewUserResponse.class);
-                    reviewUserResponse.setUserReviewInfo(infoUser(reviewModel));
-                    return reviewUserResponse;
-                }
-        ).collect(Collectors.toList());
+                            // Lấy thông tin người dùng từ idUser
+                            UserModel userModel = userRepository.findById(reviewModel.getIdUser()).orElse(null);
+                            if (userModel != null) {
+                                // Map userModel sang userReviewInfo
+                                UserReviewInfo userReviewInfo = mapper.map(userModel, UserReviewInfo.class);
+                                // Set vào DTO
+                                reviewUserResponse.setUserReviewInfo(userReviewInfo);
+                            } else {
+                                reviewUserResponse.setUserReviewInfo(null);
+                            }
 
+                            return reviewUserResponse;
+                        }
+                ).collect(Collectors.toList());
+        long totalElement = mongoTemplate.count(query.skip(0).limit(0), ReviewModel.class);
         MetaData metaData = MetaData.builder()
-                .total(reviewModelPage.getTotalElements())
-                .totalPage(reviewModelPage.getTotalPages())
-                .pageSize(limit)
-                .currentPage(page)
+                .pageSize(request.getSize())
+                .totalPage((int) Math.ceil((double) totalElement / request.getSize()))
+                .currentPage(request.getPage())
+                .total(totalElement)
                 .build();
         return ResponseBuilder.okResponse(
                 "Lấy danh sách đánh giá theo cửa hàng thành công",
@@ -316,7 +342,6 @@ public class ReviewService {
                 metaData,
                 StatusCodeEnum.REVIEW1000
         );
-
     }
 
     public ResponseEntity<ResponseDto<List<ReviewUserResponse>>> getListReviewByIdService(String idService, int limit, int page, String sort) {
@@ -419,14 +444,14 @@ public class ReviewService {
     }
 
     public ResponseEntity<ResponseDto<ReviewUserResponse>> updateReviewLike(String idReview, ReviewReactionRequest reviewReactionRequest){
-//        String idUser = userService.userId();
-//        UserModel userModel1 = userRepository.findById(idUser).orElse(null);
-//        if (userModel1 == null) {
-//            return ResponseBuilder.badRequestResponse(
-//                    "Tài khoản không tồn tại",
-//                    StatusCodeEnum.USER1002
-//            );
-//        }
+        String idUser = userService.userId();
+        UserModel userModel1 = userRepository.findById(idUser).orElse(null);
+        if (userModel1 == null) {
+            return ResponseBuilder.badRequestResponse(
+                    "Tài khoản không tồn tại",
+                    StatusCodeEnum.USER1002
+            );
+        }
 
         ReviewModel reviewModel = reviewRepository.findById(idReview).orElse(null);
         if (reviewModel == null) {
@@ -437,6 +462,12 @@ public class ReviewService {
         }
 
         UserModel userModel = userRepository.findById(reviewModel.getIdUser()).orElse(null);
+        if(reviewModel.getIdUser().equals(userModel1.getId())){
+            return ResponseBuilder.badRequestResponse(
+                    "Bạn đang thả cảm xúc cho đánh giá này rồi",
+                    StatusCodeEnum.REVIEW1004
+            );
+        }
         updateReactionReview(reviewModel, reviewReactionRequest);
         updateReactionUser(userModel, reviewReactionRequest);
         try {

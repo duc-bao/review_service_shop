@@ -12,9 +12,9 @@ import java.util.Random;
 public class VNPayConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     //public static String vnp_ReturnUrl = "http://localhost:8080/vnpay/payment_info";
-    public static String vnp_ReturnUrl = "http://localhost:5173//check-out/status";
-    public static String vnp_TmnCode = "E5PVLH8M";
-    public static String secretKey = "B7X489AFKRRCFD7L57CS21VHFAJUWHWT";
+    public static String vnp_ReturnUrl = "http://localhost:5173/owner/history";
+    public static String vnp_TmnCode = "MLRV5KT3";
+    public static String secretKey = "U01PR46KOUT5RGTEN01B1BRY267XXZZZ";
     public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
     public static String vnp_IpURL = "http://localhost:8080/pay/payment_info";
     public static String vnp_Version = "2.1.0";

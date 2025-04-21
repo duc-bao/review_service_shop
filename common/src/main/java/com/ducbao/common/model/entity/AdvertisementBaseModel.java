@@ -35,4 +35,6 @@ public class AdvertisementBaseModel extends BaseModel{
     private String thumbnail;
 
     private LocalDateTime duration;
+
+    private Integer durationDay;
 }

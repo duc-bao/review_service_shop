@@ -42,10 +42,6 @@ public class WebhookController {
     ) {
         log.info("Received IPN request from VNPAY: Transaction ID = {}, Response Code = {}, Status = {}",
                 transactionId, responseCode, transactionStatus);
-
-        // Kiểm tra tính hợp lệ của chữ ký (SecureHash) nếu cần
-        // TODO: Thực hiện xác minh secureHash với khóa bí mật của VNPAY để tránh giả mạo
-
         // Kiểm tra giao dịch có hợp lệ không
         Optional<ADSSubscriptionModel> optionalSubscription = adsSubscriptionRepository.findByVnpTxnRef(transactionId);
         if (optionalSubscription.isEmpty()) {
@@ -62,7 +58,8 @@ public class WebhookController {
                 .transactionId(transactionId)
                 .vnp_TransactionNo(vnp_TransactionNo)
                 .contentPayment(vnp_OrderInfo)
-                .totalAmount(advertisementModel.getTotalAccess())
+                .totalAmount(advertisementModel.getPrice())
+
                 .build();
         // Kiểm tra trạng thái giao dịch từ VNPAY
         if ("00".equals(responseCode) && "00".equals(transactionStatus)) {

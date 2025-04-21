@@ -58,4 +58,8 @@ public class UserBaseModel extends BaseModel {
     private int like;
 
     private String idSocial;
+
+    private Integer codeCity;
+    private Integer codeDistrict;
+    private Integer codeWard;
 }

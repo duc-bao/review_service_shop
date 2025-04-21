@@ -49,7 +49,7 @@ public class CommentCMSController {
     })
     @GetMapping("/{idReview}")
     public ResponseEntity<ResponseDto<CommentResponse>> getByIdReview(@PathVariable("idReview") String idReview) {
-        return commentService.getByIdReview(idReview);
+        return commentService.getCommentByIdReview(idReview);
     }
 
     @Operation(

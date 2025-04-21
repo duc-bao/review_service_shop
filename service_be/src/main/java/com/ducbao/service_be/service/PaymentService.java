@@ -142,7 +142,7 @@ public class PaymentService {
                 .idAdvertisement(advertisementModel.getId())
                 .idShop(shopModel.getId())
                 .issuedAt(LocalDateTime.now())
-                .expiredAt(LocalDateTime.now().plusDays(advertisementModel.getDuration().getDayOfMonth()))
+                .expiredAt(LocalDateTime.now().plusDays(advertisementModel.getDurationDay()))
                 .status(StatusAdvertisement.CLOSE)
                 .vnpTxnRef(vnp_TxnRef)
                 .build();
