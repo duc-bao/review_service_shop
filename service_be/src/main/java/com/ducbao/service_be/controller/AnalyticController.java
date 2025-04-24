@@ -3,8 +3,10 @@ package com.ducbao.service_be.controller;
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.CategoryCountRequest;
 import com.ducbao.service_be.model.dto.request.ShopTotalRequest;
-import com.ducbao.service_be.model.dto.response.CountAdsResponse;
-import com.ducbao.service_be.model.dto.response.CountResponse;
+import com.ducbao.service_be.model.dto.response.*;
+import com.ducbao.service_be.model.entity.ADSSubscriptionModel;
+import com.ducbao.service_be.model.entity.HistoryPaymentModel;
+import com.ducbao.service_be.model.entity.ReviewModel;
 import com.ducbao.service_be.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/analytic")
 @RequiredArgsConstructor
@@ -28,6 +32,7 @@ public class AnalyticController {
     private final ReviewService reviewService;
     private final FavoriteService favoriteService;
     private final AdvertisementService advertisementService;
+    private final AnalyticAService analyticAService;
 
     @Operation(
             summary = "Tổng số gói đăng ký và doanh thu",
@@ -84,6 +89,32 @@ public class AnalyticController {
     }
 
     @Operation(
+            summary = "Tổng số doanh thu",
+            description = "Api Tổng số doanh thu",
+            tags = {"ADMIN:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Tổng số cửa hàng trong thời gian", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Khóa cửa hàng thành công",
+                          "data": {
+                             "total": "5"
+                          },
+                          "statusCode": "SHOP1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "ADMIN")
+    @GetMapping("/count-revenue")
+    public ResponseEntity<ResponseDto<CountResponse>> countRevenu() {
+        return analyticAService.getTotalAdvertisement();
+    }
+
+    @Operation(
             summary = "Tổng số tài khoản trong thời gian",
             description = "Api Tổng số user trong thời gian",
             tags = {"ADMIN:TOTAL"})
@@ -135,6 +166,58 @@ public class AnalyticController {
     public ResponseEntity<ResponseDto<CountResponse>> countReview(@RequestBody ShopTotalRequest request) {
         log.info("countReview(): {}", request);
         return reviewService.getTotalReview(request);
+    }
+
+    @Operation(
+            summary = "Tổng số doanh thu của hệ thống",
+            description = "Api Tổng số doanh thu của hệ thống",
+            tags = {"ADMIN:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Api Tổng số doanh thu của hệ thốngn", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy Tổng số đánh giá trong thời gian",
+                          "data": {
+                             "total": "5"
+                          },
+                          "statusCode": "SHOP1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "ADMIN")
+    @PostMapping("/list-revenue")
+    public ResponseEntity<ResponseDto<List<ListHistoryResponse>>> revenue() {
+        return analyticAService.getRevenue();
+    }
+
+    @Operation(
+            summary = "Top doanh thu gois quảng cáo",
+            description = "Api Top doanh thu gois quảng cáo",
+            tags = {"ADMIN:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "SHOP1000", description = "Api Top doanh thu gois quảng cáo", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy Tổng số đánh giá trong thời gian",
+                          "data": {
+                             "total": "5"
+                          },
+                          "statusCode": "SHOP1000",
+                          "meta": null
+                          },
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "ADMIN")
+    @PostMapping("/list-ads-subscription")
+    public ResponseEntity<ResponseDto<List<ListAdsSubResponse>>> getListAdsSubscription() {
+        return analyticAService.getListAdsSubscription();
     }
 
     @Operation(
@@ -235,5 +318,29 @@ public class AnalyticController {
     public ResponseEntity<ResponseDto<CountResponse>> getTotalFavoriteShop(@RequestBody ShopTotalRequest request) {
         log.info("getTotalFavoriteShop(): {}", request);
         return favoriteService.getTotalFavorite(request);
+    }
+
+    @Operation(
+            summary = "Lấy danh sách đánh giá cửa hàng",
+            description = "API Lấy đánh giá cửa hàng theo cửa hàng",
+            tags = {"OWNER:TOTAL"})
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "FAVORITE1000", description = "API Lấy tổng yêu thích theo cửa hàng", content = {@Content(examples = @ExampleObject(value = """
+                     {
+                          "success": true,
+                          "message": "Lấy tổng yêu thích theo cửa hàng thành công",
+                          "data": {
+                                5
+                          },
+                          statusCode: "FAVORITE1000"
+                      }
+                    """))}
+            ),
+    })
+    @RolesAllowed(value = "OWNER")
+    @PostMapping("/list-review")
+    public ResponseEntity<ResponseDto<List<ListReviewResponse>>> getListReview() {
+        return analyticAService.getListReviewModel1();
     }
 }

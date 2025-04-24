@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class PanigationAdvertisementRequest {
-    @Min(value = 12, message = "Page size must be at least 1")
+    @Min(value = 6, message = "Page size must be at least 1")
     private int limit;
     @Min(value = 0, message = "Page number must be at least 1")
     private int page;

@@ -52,7 +52,7 @@ public class AdvertisementOwnerController {
     @PostMapping("/list-ads")
     public ResponseEntity<ResponseDto<List<AdvertisementResponse>>> getListAds(@RequestBody @Valid PanigationAdvertisementRequest request){
         log.info("getListAds - {}", request.toString());
-        return advertisementService.getListAdvertisement(request);
+        return advertisementService.getListAdvertisementShop(request);
     }
 
     @Operation(

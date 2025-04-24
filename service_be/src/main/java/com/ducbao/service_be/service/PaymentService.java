@@ -137,6 +137,12 @@ public class PaymentService {
             );
         }
 
+        if(adsSubscriptionRepository.existsByIdShopAndAndIdAdvertisement(shopModel.getId(), advertisementModel.getId())){
+            return ResponseBuilder.badRequestResponse(
+                    "Gói quảng cáo này đã được đăng ký rồi",
+                    StatusCodeEnum.ADVERTISEMENT0404
+            );
+        }
         ADSSubscriptionModel adsSubscriptionModel = ADSSubscriptionModel.builder()
                 .statusPayment(StatusPaymentEnum.PENDING)
                 .idAdvertisement(advertisementModel.getId())
@@ -178,8 +184,7 @@ public class PaymentService {
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getLimit(), sort);
 
-        org.springframework.data.mongodb.core.query.Criteria criteria = new Criteria();
-        criteria.where("idShop").is(shopModel.getId());
+       Criteria criteria = Criteria.where("idShop").is(shopModel.getId());
         if(request.getKeyword() != null){
             criteria.and("transactionId").is(request.getKeyword());
         }
@@ -187,7 +192,7 @@ public class PaymentService {
         List<HistoryPaymentModel> historyPaymentModels = mongoTemplate.find(query, HistoryPaymentModel.class);
         List<HistoryPaymentResponse> historyPaymentResponses = historyPaymentModels.stream()
                 .map(historyPaymentModel -> mapper.map(historyPaymentModel,HistoryPaymentResponse.class)).collect(Collectors.toList());
-        long total = mongoTemplate.count(query.skip(0).limit(0), HistoryPaymentResponse.class);
+        long total = mongoTemplate.count(query.skip(0).limit(0), HistoryPaymentModel.class);
         MetaData metaData = MetaData.builder()
                 .pageSize(request.getLimit())
                 .total(total)

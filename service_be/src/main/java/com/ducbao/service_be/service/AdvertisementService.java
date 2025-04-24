@@ -158,6 +158,57 @@ public class AdvertisementService {
                 StatusCodeEnum.ADVERTISEMENT1000
         );
     }
+    public ResponseEntity<ResponseDto<List<AdvertisementResponse>>> getListAdvertisementShop(PanigationAdvertisementRequest request) {
+        String idUser = userService.userId();
+        ShopModel shopModel = shopRepository.findByIdUser(idUser);
+        if(shopModel == null){
+            return  ResponseBuilder.badRequestResponse(
+                    "Không tìm thấy cửa hàng",
+                    StatusCodeEnum.SHOP1004
+            );
+        }
+        List<ADSSubscriptionModel> adsSubscriptionModelList = adsSubscriptionRepository.findAllByIdShop(shopModel.getId().toString());
+        Set<String> subscribedAdvertisementIds = adsSubscriptionModelList.stream()
+                .map(ADSSubscriptionModel::getIdAdvertisement)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Sort sort = Optional.ofNullable(request.getSort())
+                .map(sortField -> Sort.by(sortField.startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC, sortField.replace("-", "")))
+                .orElse(Sort.by(Sort.Direction.ASC, "createAt"));
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getLimit(), sort);
+
+        // Xây dựng truy vấn Criteria
+        Criteria criteria = new Criteria();
+
+        Optional.ofNullable(request.getKeyword())
+                .filter(keyword -> !keyword.isEmpty())
+                .ifPresent(keyword -> criteria.and("name").regex(".*" + keyword + ".*", "i"));
+
+        Optional.ofNullable(request.getStatus())
+                .map(StatusAdvertisement::valueOf)
+                .ifPresent(status -> criteria.and("statusAdvertisement").is(status.toString()));
+        Query query = new Query(criteria).with(pageable);
+        List<AdvertisementModel> advertisements = mongoTemplate.find(query, AdvertisementModel.class);
+        long count = mongoTemplate.count(query, AdvertisementModel.class);
+        List<AdvertisementResponse> advertisementResponses = advertisements.stream()
+                .filter(advertisement -> !subscribedAdvertisementIds.contains(advertisement.getId()))
+                .map(advertisementModel -> mapper.map(advertisementModel, AdvertisementResponse.class))
+                .collect(Collectors.toList());
+        long filteredCount = advertisementResponses.size();
+        MetaData metaData = MetaData.builder()
+                .total(filteredCount)
+                .currentPage(request.getPage())
+                .totalPage((int) Math.ceil((double) filteredCount / request.getLimit()))
+                .pageSize(request.getLimit())
+                .build();
+        return ResponseBuilder.okResponse(
+                "Lấy danh sách gói quảng cáo thành công",
+                advertisementResponses,
+                metaData,
+                StatusCodeEnum.ADVERTISEMENT1000
+        );
+    }
 
     public ResponseEntity<ResponseDto<AdsSubcriptionResponse>> getAdsSubscriptionById(String id) {
         String idUser = userService.userId();
@@ -220,7 +271,7 @@ public class AdvertisementService {
                 ).map(sortField -> Sort.by(sortField.startsWith("-") ? Sort.Direction.DESC : Sort.Direction.ASC, sortField.replace("-", "")))
                 .orElse(Sort.by(Sort.Direction.DESC, "createdAt"));
         Pageable pageable = PageRequest.of(request.getPage(), request.getLimit(), sort);
-        Criteria criteria = new Criteria();
+        Criteria criteria = Criteria.where("idShop").is(shopModel.getId());
         if (request.getKeyword() != null) {
             criteria.and("keyword").regex(".*" + request.getKeyword() + ".*", "i");
         }
@@ -324,7 +375,7 @@ public class AdvertisementService {
         }
     }
 
-    public ResponseEntity<ResponseDto<List<ShopResponse>>> getShopByAdvertisement() {
+    public ResponseEntity<ResponseDto<List<ShopAdsResponse>>> getShopByAdvertisement() {
         List<ADSSubscriptionModel> adsSubscriptionModelList = adsSubscriptionRepository.findAll()
                 .stream().filter(adsSubscriptionModel -> adsSubscriptionModel.getExpiredAt().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
@@ -334,26 +385,39 @@ public class AdvertisementService {
                 .map(user -> shopRepository.findByIdUser(user))
                 .map(ShopModel::getId)
                 .orElse(null);
-        List<ShopModel> shopModelList = adsSubscriptionModelList.stream()
-                .map(adsSubscriptionModel -> {
-                    ShopModel shopModel = shopRepository.findById(adsSubscriptionModel.getIdShop()).orElse(null);
-                    return shopModel;
-                }).filter(Objects::nonNull)
-                .filter(shopModel -> !shopModel.getId().equals(idShop))
-                .collect(Collectors.toList());
-        Collections.shuffle(shopModelList);
-        List<ShopModel> shopModelListNew = shopModelList.stream().limit(4).collect(Collectors.toList());
-        List<ShopResponse> shopResponseList = shopModelListNew.stream()
-                .map(
-                        shopModel -> mapper.map(shopModel, ShopResponse.class)
-                ).collect(Collectors.toList());
+
+        // Thay đổi cách tổ chức dữ liệu - tạo danh sách các cặp ShopModel và idAdvertisement
+        List<Map.Entry<ShopModel, String>> shopAdsPairs = new ArrayList<>();
+
+        adsSubscriptionModelList.forEach(adsSubscriptionModel -> {
+            ShopModel shopModel = shopRepository.findById(adsSubscriptionModel.getIdShop()).orElse(null);
+            if (shopModel != null && !shopModel.getId().equals(idShop)) {
+                // Mỗi cặp cửa hàng và quảng cáo sẽ được thêm vào danh sách
+                shopAdsPairs.add(new AbstractMap.SimpleEntry<>(shopModel, adsSubscriptionModel.getIdAdvertisement()));
+            }
+        });
+
+        // Xáo trộn danh sách để đảm bảo tính ngẫu nhiên
+        Collections.shuffle(shopAdsPairs);
+
+        List<Map.Entry<ShopModel, String>> limitedPairs = shopAdsPairs.stream().limit(4).collect(Collectors.toList());
+
+        List<ShopAdsResponse> shopResponseList = limitedPairs.stream()
+                .map(entry -> {
+                    ShopModel shopModel = entry.getKey();
+                    String idAdvertisement = entry.getValue();
+
+                    ShopAdsResponse shopAdsResponse = mapper.map(shopModel, ShopAdsResponse.class);
+                    shopAdsResponse.setIdAdvertisement(idAdvertisement);
+                    return shopAdsResponse;
+                }).collect(Collectors.toList());
+
         return ResponseBuilder.okResponse(
                 "Lấy danh sách cửa hàng được tài trợ thành công",
                 shopResponseList,
                 StatusCodeEnum.ADVERTISEMENT1000
         );
     }
-
     /**
      * Lấy thống kê số lượng gói quảng cáo đang được đăng ký và doanh thu
      */

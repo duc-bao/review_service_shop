@@ -19,18 +19,13 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Setting(settingPath = "elasticsearch-setting.json")
 public class ShopSearchBaseModel {
     @Id
     private String id;
 
-    //    @MultiField(mainField = @Field(type = FieldType.Text, analyzer = "standard"),
-//            otherFields = {
-//                    @InnerField(suffix = "keyword", type = FieldType.Keyword),
-//                    @InnerField(suffix = "no_tone", type = FieldType.Text, analyzer = "no_tone_analyzer"),
-//                    @InnerField(suffix = "no_tone_nor", type = FieldType.Keyword, normalizer = "no_tone_normalizer"),
-//            }
-//    )
-    @Field(type = FieldType.Keyword)
+
+    @Field(type = FieldType.Text, analyzer = "vietnamese_no_tone", searchAnalyzer = "vietnamese_no_tone")
     private String name;
 
     @Field(type = FieldType.Text)

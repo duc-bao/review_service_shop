@@ -20,10 +20,10 @@ public class OpenTimeSearchBaseModel {
     @Field(type = FieldType.Keyword)
     private DayOfWeekEnums dayOfWeek;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String openTime;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String closeTime;
 
     @Field(type = FieldType.Boolean)

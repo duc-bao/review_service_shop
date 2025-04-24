@@ -19,7 +19,7 @@ public class CategorySearchBaseModel {
     @Field(type = FieldType.Keyword)
     private String id;
 
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, analyzer = "vietnamese_no_tone", searchAnalyzer = "vietnamese_no_tone")
     private String name;
 
     @Field(type = FieldType.Text)

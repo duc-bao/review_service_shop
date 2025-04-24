@@ -1,0 +1,21 @@
+{
+  "analysis": {
+    "analyzer": {
+      "vietnamese_no_tone": {
+        "type": "custom",
+        "tokenizer": "icu_tokenizer",
+        "filter": [
+          "lowercase",
+          "icu_folding",
+          "vietnamese_stop"
+        ]
+      }
+    },
+    "filter": {
+      "vietnamese_stop": {
+        "type": "stop",
+        "stopwords": "_vietnamese_"
+      }
+    }
+  }
+}

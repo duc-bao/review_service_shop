@@ -15,7 +15,7 @@ public interface ADSSubscriptionRepository extends MongoRepository<ADSSubscripti
     Optional<ADSSubscriptionModel> findByVnpTxnRef(String vnp_TxnRef);
 
     List<ADSSubscriptionModel> findAllByIdShop(String idShop);
-    Optional<ADSSubscriptionModel> findByIdShop(String idShop);
+    Optional<ADSSubscriptionModel> findByIdShopAndIdAdvertisement(String idShop, String idAdvertisement);
 
     Integer countAllByIssuedAtAfterAndExpiredAtBefore(LocalDateTime issuedAt,LocalDateTime expiredAt);
     Integer countAllByIdShop(String idShop);
@@ -26,4 +26,5 @@ public interface ADSSubscriptionRepository extends MongoRepository<ADSSubscripti
     Integer sumTotalViewByIdShop(String idShop);
 
     boolean existsByIdShopAndAndIdAdvertisement(String idShop, String idAdvertisement);
+
 }

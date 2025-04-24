@@ -2,6 +2,7 @@ package com.ducbao.service_be.controller;
 
 import com.ducbao.common.model.dto.ResponseDto;
 import com.ducbao.service_be.model.dto.request.VerifyShopRequest;
+import com.ducbao.service_be.model.dto.response.ShopAdsResponse;
 import com.ducbao.service_be.model.dto.response.ShopResponse;
 import com.ducbao.service_be.service.AdvertisementService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,7 +62,7 @@ public class AdsSubcriptionController {
             ),
     })
     @GetMapping("/get-shop")
-    public ResponseEntity<ResponseDto<List<ShopResponse>>> getShopByAdvertisement() {
+    public ResponseEntity<ResponseDto<List<ShopAdsResponse>>> getShopByAdvertisement() {
         log.info("getShopByAdvertisement");
         return advertisementService.getShopByAdvertisement();
     }

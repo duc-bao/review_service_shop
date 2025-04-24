@@ -185,7 +185,7 @@ public class UserService {
                 .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
         LocalDateTime end = Optional.ofNullable(totalRequest.getEndDate())
                 .orElse(LocalDateTime.now());
-        int total = userRepository.countByCreatedAtBetween(totalRequest.getStartDate(), totalRequest.getEndDate());
+        int total = userRepository.countByCreatedAtBetween(start, end);
         return ResponseBuilder.okResponse(
                 "Lấy tổng số tài khoản trong thời gian thành công",
                 CountResponse.builder().total(total).build(),

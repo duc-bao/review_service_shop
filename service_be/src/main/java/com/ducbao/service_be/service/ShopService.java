@@ -384,6 +384,7 @@ public class ShopService {
                     StatusCodeEnum.SHOP1005
             );
         }
+
         ShopModel shopModelNew = shopRepository.findById(request.getIdShop()).orElse(null);
         if (shopModelNew == null) {
             return ResponseBuilder.badRequestResponse(
@@ -392,9 +393,9 @@ public class ShopService {
             );
         }
         shopModelNew.setView((shopModelNew.getView() == null ? 0 : shopModelNew.getView()) + 1);
-        if ("ads".equalsIgnoreCase(request.getType())) {
-            ADSSubscriptionModel subscriptionModel = adsSubscriptionRepository.findByIdShop(shopModelNew.getId()).orElse(null);
-            if (subscriptionModel != null) {
+        if ("ads".equalsIgnoreCase(request.getType()) && request.getIdAdvertisement() != null) {
+            ADSSubscriptionModel subscriptionModel = adsSubscriptionRepository.findByIdShopAndIdAdvertisement(shopModelNew.getId(), request.getIdAdvertisement()).orElse(null);
+            if (subscriptionModel != null && subscriptionModel.getIdAdvertisement().equals(request.getIdAdvertisement())) {
                 subscriptionModel.setTotalView((subscriptionModel.getTotalView() != null ? subscriptionModel.getTotalView() : 0) + 1);
                 adsSubscriptionRepository.save(subscriptionModel);
             }
@@ -402,10 +403,10 @@ public class ShopService {
         try {
             shopModelNew =  shopRepository.save(shopModelNew);
             ShopModel finalShopModelNew = shopModelNew;
-//            new Thread(() -> {
-//                log.info("recordView");
-//                shopSearchService.save(finalShopModelNew.getId().toString());
-//            }).start();
+            new Thread(() -> {
+                log.info("recordView");
+                shopSearchService.save(finalShopModelNew.getId().toString());
+            }).start();
             return ResponseBuilder.okResponse(
                     "Tăng số lượng view thành công",
                     StatusCodeEnum.SHOP1000
@@ -837,7 +838,7 @@ public class ShopService {
                 .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
         LocalDateTime end = Optional.ofNullable(request.getEndDate())
                 .orElse(LocalDateTime.now());
-        int total = shopRepository.countByCreatedAtBetween(request.getStartDate(), request.getEndDate());
+        int total = shopRepository.countByCreatedAtBetween(start, end);
         return ResponseBuilder.okResponse(
                 "Tổng số cửa hàng theo thời gian",
                 CountResponse.builder()
