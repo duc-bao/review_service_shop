@@ -36,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -223,7 +224,6 @@ public class ShopSearchServiceImpl implements ShopSearchService {
     private List<FunctionScore> buildForMeScore(String userID, ShopSuggestRequest request) {
         List<FunctionScore> functionScores = new ArrayList<>();
 
-        // 1. Ưu tiên vị trí (điểm cao nhất)
         if (request.getLongitude() != null && request.getLatitude() != null) {
             List<Object> userLocation = Arrays.asList(
                     request.getLatitude().doubleValue(),
@@ -237,13 +237,13 @@ public class ShopSearchServiceImpl implements ShopSearchService {
             Map<String, Object> locationParams = new HashMap<>();
             locationParams.put("lat", request.getLatitude().doubleValue());
             locationParams.put("lon", request.getLongitude().doubleValue());
-            locationParams.put("maxDistance", 3.0);
+            locationParams.put("maxDistance", 100.0);
 
             functionScores.add(
                     buildScoringFunctionWithParams(
                             "scripts",
                             null,
-                            15,
+                            20 ,
                             locationParams,
                             null,
                             null,
@@ -257,18 +257,29 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         if (userID != null && !userID.isEmpty()) {
             List<String> favoriteShopIds = getFavoriteShopIds(userID);
             if (favoriteShopIds != null && !favoriteShopIds.isEmpty()) {
-                List<String> favoriteCategories = getFavoriteCategories(favoriteShopIds);
-                if (!favoriteCategories.isEmpty()) {
-                    functionScores.add(buildScoringFunction(
-                            "path-list",
-                            "categorySearchBaseModel.idParent",
-                            50,
-                            favoriteCategories,
-                            "categorySearchBaseModel",
-                            null,
-                            null,
-                            null
-                    ));
+                List<String> filteredFavoriteShopIds = favoriteShopIds;
+                if (request.getLatitude() != null && request.getLongitude() != null) {
+                    filteredFavoriteShopIds = filterFavoriteShopsByLocation(
+                            favoriteShopIds,
+                            request.getLatitude(),
+                            request.getLongitude(),
+                            30.0 // Phạm vi tối đa 30km
+                    );
+                }
+                if (!filteredFavoriteShopIds.isEmpty()) {
+                    List<String> favoriteCategories = getFavoriteCategories(filteredFavoriteShopIds);
+                    if (!favoriteCategories.isEmpty()) {
+                        functionScores.add(buildScoringFunction(
+                                "path-list",
+                                "categorySearchBaseModel.idParent",
+                                20,
+                                favoriteCategories,
+                                "categorySearchBaseModel",
+                                null,
+                                null,
+                                null
+                        ));
+                    }
                 }
             }
         }
@@ -310,7 +321,63 @@ public class ShopSearchServiceImpl implements ShopSearchService {
 
         return functionScores;
     }
+    /**
+     * Lọc các cửa hàng yêu thích nằm trong phạm vi vị trí của người dùng
+     * @param favoriteShopIds Danh sách ID của các cửa hàng yêu thích
+     * @param latitude Vĩ độ của người dùng
+     * @param longitude Kinh độ của người dùng
+     * @param maxDistance Phạm vi tối đa (tính bằng km)
+     * @return Danh sách ID của các cửa hàng yêu thích nằm trong phạm vi
+     */
+    private List<String> filterFavoriteShopsByLocation(List<String> favoriteShopIds, BigDecimal latitude, BigDecimal longitude, double maxDistance) {
+        try {
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
+            // Thêm điều kiện lọc theo danh sách favoriteShopIds
+            boolQuery.must(
+                    TermsQuery.of(t -> t
+                            .field("id")
+                            .terms(TermsQueryField.of(f -> f
+                                    .value(favoriteShopIds.stream()
+                                            .map(FieldValue::of)
+                                            .collect(Collectors.toList()))
+                            ))
+                    )._toQuery()
+            );
+
+            // Thêm bộ lọc geo-distance
+            GeoDistanceQuery geoDistanceQuery = GeoDistanceQuery.of(g -> g
+                    .field("location")
+                    .location(l -> l
+                            .latlon(ll -> ll
+                                    .lat(latitude.doubleValue())
+                                    .lon(longitude.doubleValue())
+                            )
+                    )
+                    .distance(maxDistance + "km")
+            );
+            boolQuery.filter(geoDistanceQuery._toQuery());
+
+            // Thực hiện truy vấn Elasticsearch
+            SearchResponse<ShopSearchModel> searchResponse = elasticsearchClient.search(s -> s
+                            .index("shop")
+                            .query(boolQuery.build()._toQuery())
+                            .size(favoriteShopIds.size()),
+                    ShopSearchModel.class
+            );
+
+            // Thu thập ID của các cửa hàng thỏa mãn
+            return searchResponse.hits().hits()
+                    .stream()
+                    .map(hit -> hit.source())
+                    .filter(Objects::nonNull)
+                    .map(ShopSearchModel::getId)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error filtering favorite shops by location - {}", e.getMessage());
+            return favoriteShopIds; // Trả về danh sách gốc nếu có lỗi
+        }
+    }
     private FunctionScore buildScoringFunctionWithParams(String typeScore, String field, double score,
                                                          Map<String, Object> params, String path,
                                                          String sufix, String script, String param) {
@@ -542,6 +609,24 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         return searchRequestBuilder.build();
     }
 
+    private void addGeoDistanceFilter(BoolQuery.Builder boolQuery, BigDecimal latitude, BigDecimal longitude) {
+        if (latitude == null || longitude == null) {
+            return;
+        }
+
+        GeoDistanceQuery geoDistanceQuery = GeoDistanceQuery.of(g -> g
+                .field("location")
+                .location(l -> l
+                        .latlon(ll -> ll
+                                .lat(latitude.doubleValue())
+                                .lon(longitude.doubleValue())
+                        )
+                )
+                .distance("100km")
+        );
+
+        boolQuery.filter(geoDistanceQuery._toQuery());
+    }
     private List<ShopSearchResponse> extractShopSearchResult(List<ShopSearchModel> shopSearchResponseList) {
         List<ShopSearchResponse> shopSearchResponses = new ArrayList<>();
         for (ShopSearchModel shopSearchModel : shopSearchResponseList) {
@@ -619,6 +704,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
         addTermFilter(boolQuery, "codeDistrict", shopSearchRequest.getDistrict());
         applyScoreFilter(boolQuery, shopSearchRequest.getScoreReview());
         addCloseTimeFilter(boolQuery, shopSearchRequest.getOpenTimeId());
+        addGeoDistanceFilter(boolQuery, shopSearchRequest.getLatitude(), shopSearchRequest.getLongitude());
         return boolQuery;
     }
 
@@ -702,7 +788,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                         })
                 )
         );
-        boolQuery.should(nestedQuery._toQuery());
+        boolQuery.must(nestedQuery._toQuery());
     }
 
     private void applyScoreFilter(BoolQuery.Builder boolQuery, Double score) {
@@ -775,9 +861,8 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                                 q -> q.match(
                                         m -> m.field("categorySearchBaseModel.name")
                                                 .query(keyword)
-                                                .analyzer("vietnamese_no_tone")  // Sử dụng vi_analyzer đã định nghĩa
-                                                .fuzziness("AUTO")       // Cho phép tìm kiếm mờ
-                                                .operator(Operator.Or)   // Tìm kiếm theo từ khóa
+//                                                .analyzer("vietnamese_no_tone")  // Sử dụng vi_analyzer đã định nghĩa
+                                                .operator(Operator.And)   // Tìm kiếm theo từ khóa
                                 )
                         ))._toQuery();
 
@@ -788,8 +873,7 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                                         m -> m.field("serviceSearchBaseModels.name")
                                                 .query(keyword)
                                                 .analyzer("vietnamese_no_tone")  // Sử dụng vi_analyzer
-                                                .fuzziness("AUTO")
-                                                .operator(Operator.Or)
+                                                .operator(Operator.And)
                                 )
                         ))._toQuery();
 
@@ -797,12 +881,12 @@ public class ShopSearchServiceImpl implements ShopSearchService {
                 m -> m.field("name")
                         .query(keyword)
                         .analyzer("vietnamese_no_tone")  // Sử dụng vi_analyzer
-                        .fuzziness("AUTO")
-                        .operator(Operator.Or)
+//                        .fuzziness("AUTO")
+                        .operator(Operator.And)
         )._toQuery();
 
         // Kết hợp tất cả các query lại với BoolQuery
-        return BoolQuery.of(b -> b.should(categorySearchNested, serviceSearchNested, nameQuery))._toQuery();
+        return BoolQuery.of(b -> b.should(serviceSearchNested, categorySearchNested, nameQuery))._toQuery();
     }
 
     /**

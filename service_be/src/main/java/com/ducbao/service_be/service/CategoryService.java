@@ -91,7 +91,21 @@ public class CategoryService {
 //            }
 //            categoryModel.setParentId(parent.getId());
 //        }
-        mapper.maptoObject(categoryRequest, categoryModel);
+        categoryModel.setName(categoryRequest.getName());
+        categoryModel.setDescription(categoryRequest.getDescription());
+        Set<String> currentTags = categoryModel.getTags();
+        Set<String> newTags = categoryRequest.getTags();
+
+        if (currentTags == null) {
+            currentTags = new HashSet<>();
+        }
+
+
+            currentTags.addAll(newTags); // hợp nhất tags
+
+
+        categoryModel.setTags(currentTags);
+        categoryModel.setType(categoryModel.getType());
         try {
             categoryModel = categoryRepository.save(categoryModel);
             return ResponseBuilder.okResponse(

@@ -95,6 +95,7 @@ public class ReviewService {
                 shopRepository.save(shopModel);
                 userRepository.save(userModel);
                 reviewModel = reviewRepository.save(reviewModel);
+                new Thread(()-> shopSearchService.save(shopModel.getId())).start();
                 return ResponseBuilder.okResponse(
                         "Tạo đánh giá của cửa hàng thành công",
                         mapper.map(reviewModel, ReviewResponse.class),
