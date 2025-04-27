@@ -19,7 +19,7 @@ import java.util.List;
 public class ServiceSearchBaseModel {
     private String id;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Text, analyzer = "vietnamese_no_tone", searchAnalyzer = "vietnamese_no_tone")
     private String name;
 
     @Field(type = FieldType.Keyword)
@@ -43,4 +43,9 @@ public class ServiceSearchBaseModel {
     @Field(type = FieldType.Boolean)
     @JsonProperty("isDelete")
     private boolean isDelete;
+
+    @Field(type = FieldType.Keyword)
+    private String idShop;
 }
+
+

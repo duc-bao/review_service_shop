@@ -6,4 +6,5 @@ import lombok.Data;
 public class RecordViewRequest {
     private String idShop;
     private String type;
+    private String idAdvertisement;
 }

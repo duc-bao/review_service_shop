@@ -148,7 +148,7 @@ public class FavoriteService {
 
     public ResponseEntity<ResponseDto<CountResponse>> getTotalFavorite(ShopTotalRequest request) {
         String idUser = userService.userId();
-        ShopModel shopModel  = shopRepository.findById(idUser).orElse(null);
+        ShopModel shopModel  = shopRepository.findByIdUser(idUser);
         if(shopModel == null){
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng",

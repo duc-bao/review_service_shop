@@ -24,8 +24,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -89,7 +91,21 @@ public class CategoryService {
 //            }
 //            categoryModel.setParentId(parent.getId());
 //        }
-        mapper.maptoObject(categoryRequest, categoryModel);
+        categoryModel.setName(categoryRequest.getName());
+        categoryModel.setDescription(categoryRequest.getDescription());
+        Set<String> currentTags = categoryModel.getTags();
+        Set<String> newTags = categoryRequest.getTags();
+
+        if (currentTags == null) {
+            currentTags = new HashSet<>();
+        }
+
+
+            currentTags.addAll(newTags); // hợp nhất tags
+
+
+        categoryModel.setTags(currentTags);
+        categoryModel.setType(categoryModel.getType());
         try {
             categoryModel = categoryRepository.save(categoryModel);
             return ResponseBuilder.okResponse(
@@ -493,7 +509,11 @@ public class CategoryService {
     }
 
     public ResponseEntity<ResponseDto<CountResponse>> countCategory(CategoryCountRequest request) {
-        Integer total = categoryRepository.countByCreatedAtBetweenAndIsDeleteIsFalse(request.getStartTime(), request.getEndTime());
+        LocalDateTime start = Optional.ofNullable(request.getStartTime())
+                .orElse(LocalDateTime.of(1970, 1, 1, 0, 0));
+        LocalDateTime end = Optional.ofNullable(request.getEndTime())
+                .orElse(LocalDateTime.now());
+        Integer total = categoryRepository.countByCreatedAtBetweenAndIsDeleteIsFalse(start, end);
         return ResponseBuilder.okResponse(
                 "Lấy tổng số lượng danh mục thành công",
                 CountResponse.builder().total(total).build(),

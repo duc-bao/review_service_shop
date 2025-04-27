@@ -51,6 +51,9 @@ public class WebhookController {
         ADSSubscriptionModel adsSubscription = optionalSubscription.get();
         AdvertisementModel advertisementModel = advertisementRepository.findById(adsSubscription.getIdAdvertisement()).orElse(null);
 
+        if(historyPaymentRepository.existsByTransactionId(transactionId)){
+            return ResponseEntity.badRequest().body("History payment already exists");
+        }
 
         HistoryPaymentModel historyPaymentModel = HistoryPaymentModel.builder()
                 .idAds(adsSubscription.getIdAdvertisement())

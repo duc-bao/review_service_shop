@@ -19,6 +19,7 @@ import com.ducbao.service_be.repository.ReviewRepository;
 import com.ducbao.service_be.repository.ServiceRepository;
 import com.ducbao.service_be.repository.ShopRepository;
 import com.ducbao.service_be.repository.UserRepository;
+import com.ducbao.service_be.service.elk.ShopSearchServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -50,6 +51,7 @@ public class ReviewService {
     private final RedissonClient redisson;
     private final UserService userService;
     private final MongoTemplate mongoTemplate;
+    private final ShopSearchServiceImpl shopSearchService;
 
     public ResponseEntity<ResponseDto<ReviewResponse>> createReview(ReviewRequest reviewRequest) {
         String idUser = userService.userId();
@@ -93,6 +95,7 @@ public class ReviewService {
                 shopRepository.save(shopModel);
                 userRepository.save(userModel);
                 reviewModel = reviewRepository.save(reviewModel);
+                new Thread(()-> shopSearchService.save(shopModel.getId())).start();
                 return ResponseBuilder.okResponse(
                         "Tạo đánh giá của cửa hàng thành công",
                         mapper.map(reviewModel, ReviewResponse.class),
@@ -133,6 +136,7 @@ public class ReviewService {
             shopRepository.save(shopModel);
             userRepository.save(userModel);
             serviceRepository.save(serviceModel);
+            new Thread(()-> shopSearchService.save(shopModel.getId())).start();
             return ResponseBuilder.okResponse(
                     "Tạo đánh giá của dịch vụ thành công",
                     mapper.map(reviewModel, ReviewResponse.class),
@@ -506,7 +510,7 @@ public class ReviewService {
 
     public ResponseEntity<ResponseDto<CountResponse>> getTotalReviewShop(ShopTotalRequest request){
         String idUser = userService.userId();
-        ShopModel shopModel  = shopRepository.findById(idUser).orElse(null);
+        ShopModel shopModel  = shopRepository.findByIdUser(idUser);
         if(shopModel == null){
             return ResponseBuilder.badRequestResponse(
                     "Không tìm thấy cửa hàng",

@@ -8,7 +8,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HistoryPaymentRepository extends MongoRepository<HistoryPaymentModel, String> {
     @Aggregation(pipeline = {
+            "{ $match: { statusPayment: 'SUCCESS' } }",
             "{ $group: { _id: null, total: { $sum: \"$totalAmount\" } } }"
     })
     Double sumTotalAmount();
+
+    boolean existsByTransactionId(String transactionId);
 }
